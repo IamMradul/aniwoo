@@ -1,0 +1,41 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pawPad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FF6B35" />
+      <stop offset="100%" stop-color="#E25728" />
+    </linearGradient>
+    <linearGradient id="pawToe" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFE0D3" />
+      <stop offset="100%" stop-color="#FFC1A3" />
+    </linearGradient>
+  </defs>
+
+  <!-- Soft shadow -->
+  <ellipse cx="32" cy="50" rx="14" ry="5" fill="#000" opacity="0.14" />
+
+  <!-- Main pad -->
+  <path
+    d="M20 34c0-5.5 5.3-11 12-11s12 5.5 12 11c0 6-4.8 11-12 11S20 40 20 34Z"
+    fill="url(#pawPad)"
+    stroke="#2C3E50"
+    stroke-width="2"
+    stroke-linejoin="round"
+  />
+
+  <!-- Toes -->
+  <circle cx="20" cy="21" r="5.3" fill="url(#pawToe)" stroke="#2C3E50" stroke-width="1.6" />
+  <circle cx="32" cy="18.5" r="5.3" fill="url(#pawToe)" stroke="#2C3E50" stroke-width="1.6" />
+  <circle cx="44" cy="21" r="5.3" fill="url(#pawToe)" stroke="#2C3E50" stroke-width="1.6" />
+  <circle cx="26" cy="26" r="4.8" fill="url(#pawToe)" stroke="#2C3E50" stroke-width="1.5" opacity="0.0" />
+
+  <!-- Inner highlight on pad -->
+  <path
+    d="M25.5 33.2c.9-3 4.2-5.4 7.9-5.4 3.7 0 7 2.4 7.9 5.4"
+    fill="none"
+    stroke="#FFD9C3"
+    stroke-width="1.6"
+    stroke-linecap="round"
+    opacity="0.7"
+  />
+</svg>
+

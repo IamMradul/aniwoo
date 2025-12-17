@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-light text-dark font-sans antialiased;
+  cursor: url('/cursor-paw.svg') 18 18, auto;
+}
+
+a,
+button,
+[role='button'],
+input,
+select,
+textarea {
+  cursor: url('/cursor-paw.svg') 18 18, pointer;
+}
+
+.bg-paw-print {
+  background-image: url('/cursor-paw.svg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 1px 1px rgba(44, 62, 80, 0.6));
+}
+
+.animate-footprint {
+  animation: footprint-fade 0.9s ease-out forwards;
+}
+
+@keyframes footprint-fade {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.9) translateY(2px);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05) translateY(-3px);
+  }
+}
+
+.paw-pattern-bg {
+  background-image: radial-gradient(circle at 10px 10px, rgba(255, 230, 109, 0.35) 2px, transparent 0),
+    radial-gradient(circle at 30px 30px, rgba(78, 205, 196, 0.25) 3px, transparent 0);
+  background-size: 40px 40px;
+}
+
+.scroll-indicator {
+  animation: bounce 1.5s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+
