@@ -9,6 +9,9 @@ const VetsPage = lazy(() => import('./pages/Vets'));
 const MatingConnectPage = lazy(() => import('./pages/MatingConnect'));
 const AboutPage = lazy(() => import('./pages/About'));
 const ContactPage = lazy(() => import('./pages/Contact'));
+const LoginPage = lazy(() => import('./pages/Login'));
+const SignupPage = lazy(() => import('./pages/Signup'));
+const ProfilePage = lazy(() => import('./pages/Profile'));
 
 function App() {
   return (
@@ -22,6 +25,9 @@ function App() {
           <Route path="/mating-connect" element={<MatingConnectPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Routes>
     </Suspense>
