@@ -10,7 +10,7 @@ const contactSchema = z.object({
 });
 
 type ContactFormValues = z.infer<typeof contactSchema>;
-
+ 
 const Contact = () => {
   const {
     register,

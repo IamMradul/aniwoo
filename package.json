@@ -9,6 +9,7 @@
     "lint": "echo \"No linter configured yet\""
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.48.0",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.469.0",
     "react": "^18.3.1",
