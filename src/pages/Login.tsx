@@ -3,10 +3,15 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+import { Stethoscope, User } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters')
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  role: z.enum(['vet', 'pet_owner'], {
+    required_error: 'Please select a login type'
+  })
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -14,22 +19,29 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState<'vet' | 'pet_owner' | null>(null);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting }
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
-      password: ''
+      password: '',
+      role: undefined
     }
   });
 
   const onSubmit = async (values: LoginFormValues) => {
-    await login(values.email, values.password);
-    navigate('/profile');
+    await login(values.email, values.password, values.role);
+    if (values.role === 'vet') {
+      navigate('/vet-dashboard');
+    } else {
+      navigate('/profile');
+    }
   };
 
   return (
@@ -42,6 +54,50 @@ const Login = () => {
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4 max-w-md">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2">
+                Login as
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRole('vet');
+                    setValue('role', 'vet');
+                  }}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${
+                    selectedRole === 'vet'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-slate-200 text-slate-600 hover:border-primary/50'
+                  }`}
+                >
+                  <Stethoscope className="h-4 w-4" />
+                  Veterinarian
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRole('pet_owner');
+                    setValue('role', 'pet_owner');
+                  }}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${
+                    selectedRole === 'pet_owner'
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-slate-200 text-slate-600 hover:border-primary/50'
+                  }`}
+                >
+                  <User className="h-4 w-4" />
+                  Pet Owner
+                </button>
+              </div>
+              {errors.role && (
+                <p className="mt-1 text-xs text-red-600" role="alert">
+                  {errors.role.message}
+                </p>
+              )}
+              <input type="hidden" {...register('role')} />
+            </div>
+
             <div>
               <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
                 Email

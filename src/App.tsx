@@ -12,6 +12,7 @@ const ContactPage = lazy(() => import('./pages/Contact'));
 const LoginPage = lazy(() => import('./pages/Login'));
 const SignupPage = lazy(() => import('./pages/Signup'));
 const ProfilePage = lazy(() => import('./pages/Profile'));
+const VetDashboardPage = lazy(() => import('./pages/VetDashboard'));
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/vet-dashboard" element={<VetDashboardPage />} />
         </Route>
       </Routes>
     </Suspense>
