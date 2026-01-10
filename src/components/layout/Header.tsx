@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { PawPrint } from 'lucide-react';
+import { PawPrint, Stethoscope } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
@@ -7,15 +7,13 @@ const navItems = [
   { to: '/', label: 'Home' },
   { to: '/shop', label: 'Shop' },
   { to: '/vets', label: 'Vets' },
-  { to: '/mating-connect', label: 'Mating Connect' },
   { to: '/ai-health-check', label: 'AI Health Check' },
-  { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' }
 ];
 
 export const Header = () => {
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-white/15 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.08)]">
@@ -46,15 +44,20 @@ export const Header = () => {
               {item.label}
             </NavLink>
           ))}
+          {isAuthenticated && user?.role === 'vet' && (
+            <NavLink
+              to="/vet-dashboard"
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 transition-colors hover:text-primary ${isActive ? 'text-primary' : 'text-black'}`
+              }
+            >
+              <Stethoscope className="h-4 w-4" />
+              Vet Dashboard
+            </NavLink>
+          )}
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            to="/ai-health-check"
-            className="hidden rounded-full border border-primary/70 px-4 py-2 text-xs font-semibold text-black transition hover:bg-primary hover:text-white sm:inline-flex"
-          >
-            AI Health Check
-          </Link>
           <Link
             to={isAuthenticated ? '/profile' : '/login'}
             className="hidden rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-black transition hover:border-primary hover:text-primary sm:inline-flex"
