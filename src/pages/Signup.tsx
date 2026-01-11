@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { Stethoscope, User } from 'lucide-react';
+import { GoogleSignIn } from '../components/auth/GoogleSignIn';
 
 const signupSchema = z
   .object({
@@ -24,9 +25,11 @@ const signupSchema = z
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 const Signup = () => {
-  const { register: registerUser } = useAuth();
+  const { register: registerUser, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<'vet' | 'pet_owner' | null>(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const {
     register,
@@ -50,6 +53,24 @@ const Signup = () => {
       navigate('/vet-dashboard');
     } else {
       navigate('/profile');
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    if (!selectedRole) {
+      setGoogleError('Please select an account type (Veterinarian or Pet Owner) first');
+      return;
+    }
+
+    setGoogleLoading(true);
+    setGoogleError(null);
+
+    try {
+      await loginWithGoogle(selectedRole);
+      // OAuth will redirect automatically - no need to navigate
+    } catch (error: any) {
+      setGoogleError(error.message || 'Failed to sign up with Google');
+      setGoogleLoading(false);
     }
   };
 
@@ -197,6 +218,27 @@ const Signup = () => {
             >
               {isSubmitting ? 'Creating account…' : 'Sign up'}
             </button>
+
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-slate-500">Or continue with</span>
+              </div>
+            </div>
+
+            {googleError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                {googleError}
+              </div>
+            )}
+
+            <GoogleSignIn
+              role={selectedRole || 'pet_owner'}
+              text="signup_with"
+              disabled={!selectedRole || googleLoading}
+            />
 
             <p className="text-xs text-slate-600">
               Already have an account?{' '}

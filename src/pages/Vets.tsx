@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { Stethoscope, MapPin, Phone, Award, Building2, Search } from 'lucide-react';
+import { Stethoscope, MapPin, Phone, Award, Building2, Search, RefreshCw } from 'lucide-react';
 
 type Vet = {
   id: string;
@@ -34,26 +34,49 @@ const Vets = () => {
   const loadVets = async () => {
     try {
       setLoading(true);
-      let query = supabase
+      
+      // First, get all vets
+      const { data: vetsData, error: vetsError } = await supabase
         .from('vets')
-        .select(`
-          *,
-          profiles:user_id (
-            name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      const { data, error } = await query;
-
-      if (error) {
-        throw error;
+      if (vetsError) {
+        console.error('Error loading vets:', vetsError);
+        throw vetsError;
       }
 
-      setVets(data || []);
+      if (!vetsData || vetsData.length === 0) {
+        setVets([]);
+        setLoading(false);
+        return;
+      }
+
+      // Then, get profiles for each vet's user_id
+      const userIds = vetsData.map(vet => vet.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error loading profiles:', profilesError);
+        // Continue even if profiles fail
+      }
+
+      // Combine vets with their profiles
+      const vetsWithProfiles = vetsData.map(vet => {
+        const profile = profilesData?.find(p => p.id === vet.user_id);
+        return {
+          ...vet,
+          profiles: profile ? { name: profile.name, email: profile.email } : undefined
+        };
+      });
+
+      setVets(vetsWithProfiles);
     } catch (error) {
       console.error('Error loading vets:', error);
+      setVets([]);
     } finally {
       setLoading(false);
     }
@@ -90,11 +113,21 @@ const Vets = () => {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Vet Directory</h1>
-        <p className="mt-3 text-sm text-slate-600 sm:text-base">
-          Connect with trusted, certified veterinarians in your area and book appointments with ease.
-        </p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Vet Directory</h1>
+          <p className="mt-3 text-sm text-slate-600 sm:text-base">
+            Connect with trusted, certified veterinarians in your area and book appointments with ease.
+          </p>
+        </div>
+        <button
+          onClick={loadVets}
+          className="flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary"
+          title="Refresh vet listings"
+        >
+          <RefreshCw className="h-4 w-4" />
+          <span className="hidden sm:inline">Refresh</span>
+        </button>
       </div>
 
       {/* Search and Filters */}

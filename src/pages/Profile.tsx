@@ -64,8 +64,8 @@ const Profile = () => {
 
           <button
             type="button"
-            onClick={() => {
-              logout();
+            onClick={async () => {
+              await logout();
               navigate('/');
             }}
             className="mt-6 rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-500 hover:text-red-500"

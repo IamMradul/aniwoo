@@ -117,7 +117,7 @@ const VetDashboard = () => {
         throw error;
       }
 
-      setMessage({ type: 'success', text: 'Vet details saved successfully!' });
+      setMessage({ type: 'success', text: 'Vet details saved successfully! Your profile is now visible on the Vets page.' });
     } catch (error: any) {
       console.error('Error saving vet details:', error);
       setMessage({ type: 'error', text: error.message || 'Failed to save vet details' });
@@ -142,8 +142,8 @@ const VetDashboard = () => {
           </p>
         </div>
         <button
-          onClick={() => {
-            logout();
+          onClick={async () => {
+            await logout();
             navigate('/');
           }}
           className="flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-500 hover:text-red-500"

@@ -13,8 +13,11 @@ const LoginPage = lazy(() => import('./pages/Login'));
 const SignupPage = lazy(() => import('./pages/Signup'));
 const ProfilePage = lazy(() => import('./pages/Profile'));
 const VetDashboardPage = lazy(() => import('./pages/VetDashboard'));
+const AuthCallbackPage = lazy(() => import('./pages/AuthCallback'));
 
 function App() {
+  console.log('App component rendering...');
+  
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading Aniwoo...</div>}>
       <Routes>
@@ -30,6 +33,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/vet-dashboard" element={<VetDashboardPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
         </Route>
       </Routes>
     </Suspense>
