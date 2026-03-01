@@ -31,6 +31,7 @@ export default function Signup() {
   const { register: registerUser } = useAuth();
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<'vet' | 'pet_owner' | null>(null);
+  const [signupError, setSignupError] = useState<string | null>(null);
 
   const {
     register,
@@ -49,11 +50,20 @@ export default function Signup() {
   });
 
   const onSubmit = async (values: SignupFormValues) => {
-    await registerUser(values.name, values.email, values.password, values.role);
-    if (values.role === 'vet') {
-      router.push('/vet-dashboard');
-    } else {
+    setSignupError(null);
+    try {
+      await registerUser(values.name, values.email, values.password, values.role);
       router.push('/profile');
+    } catch (error: any) {
+      let errorMessage = 'Failed to create account. Please try again.';
+
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      setSignupError(errorMessage);
     }
   };
 
@@ -79,11 +89,10 @@ export default function Signup() {
                     setSelectedRole('vet');
                     setValue('role', 'vet');
                   }}
-                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${
-                    selectedRole === 'vet'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-slate-200 text-slate-600 hover:border-primary/50'
-                  }`}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${selectedRole === 'vet'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-slate-200 text-slate-600 hover:border-primary/50'
+                    }`}
                 >
                   <Stethoscope className="h-4 w-4" />
                   Veterinarian
@@ -94,11 +103,10 @@ export default function Signup() {
                     setSelectedRole('pet_owner');
                     setValue('role', 'pet_owner');
                   }}
-                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${
-                    selectedRole === 'pet_owner'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-slate-200 text-slate-600 hover:border-primary/50'
-                  }`}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${selectedRole === 'pet_owner'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-slate-200 text-slate-600 hover:border-primary/50'
+                    }`}
                 >
                   <User className="h-4 w-4" />
                   Pet Owner
@@ -195,6 +203,12 @@ export default function Signup() {
               </div>
             </div>
 
+            {signupError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+                {signupError}
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -216,12 +230,10 @@ export default function Signup() {
               role={selectedRole || 'pet_owner'}
               text="signup_with"
               disabled={false}
+              requireRoleSelection={true}
+              hasSelectedRole={!!selectedRole}
+              onRoleSelected={setSelectedRole}
             />
-            {!selectedRole && (
-              <p className="text-xs text-slate-500 mt-2 text-center">
-                💡 Tip: Select an account type above for a better experience
-              </p>
-            )}
 
             <p className="text-xs text-slate-600">
               Already have an account?{' '}

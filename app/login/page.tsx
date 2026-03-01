@@ -46,23 +46,19 @@ export default function Login() {
     setIsLoading(true);
     try {
       await login(values.email, values.password, values.role);
-      
+
       // Wait a moment to ensure auth state is updated
       await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Navigate based on role
-      if (values.role === 'vet') {
-        router.push('/vet-dashboard');
-      } else {
-        router.push('/profile');
-      }
-      
+
+      // Navigate to unified profile
+      router.push('/profile');
+
       // Force a page reload to ensure auth state is fully loaded
       router.refresh();
     } catch (error: any) {
       console.error('Login error:', error);
       let errorMessage = 'Failed to log in. Please check your email and password.';
-      
+
       if (error.message) {
         errorMessage = error.message;
       } else if (error.error_description) {
@@ -70,7 +66,7 @@ export default function Login() {
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-      
+
       setLoginError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -99,11 +95,10 @@ export default function Login() {
                     setSelectedRole('vet');
                     setValue('role', 'vet');
                   }}
-                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${
-                    selectedRole === 'vet'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-slate-200 text-slate-600 hover:border-primary/50'
-                  }`}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${selectedRole === 'vet'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-slate-200 text-slate-600 hover:border-primary/50'
+                    }`}
                 >
                   <Stethoscope className="h-4 w-4" />
                   Veterinarian
@@ -114,11 +109,10 @@ export default function Login() {
                     setSelectedRole('pet_owner');
                     setValue('role', 'pet_owner');
                   }}
-                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${
-                    selectedRole === 'pet_owner'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-slate-200 text-slate-600 hover:border-primary/50'
-                  }`}
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${selectedRole === 'pet_owner'
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-slate-200 text-slate-600 hover:border-primary/50'
+                    }`}
                 >
                   <User className="h-4 w-4" />
                   Pet Owner
@@ -197,12 +191,10 @@ export default function Login() {
               role={selectedRole || 'pet_owner'}
               text="signin_with"
               disabled={false}
+              requireRoleSelection={true}
+              hasSelectedRole={!!selectedRole}
+              onRoleSelected={setSelectedRole}
             />
-            {!selectedRole && (
-              <p className="text-xs text-slate-500 mt-2 text-center">
-                💡 Tip: Select a role above for a better experience
-              </p>
-            )}
 
             <p className="text-xs text-slate-600">
               New to Aniwoo?{' '}

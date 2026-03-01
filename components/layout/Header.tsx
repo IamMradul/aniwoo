@@ -47,8 +47,8 @@ export const Header = () => {
           ))}
           {isAuthenticated && user?.role === 'vet' && (
             <Link
-              href="/vet-dashboard"
-              className={`flex items-center gap-1.5 transition-colors hover:text-primary ${pathname === '/vet-dashboard' ? 'text-primary' : 'text-black'}`}
+              href="/profile"
+              className={`flex items-center gap-1.5 transition-colors hover:text-primary ${pathname === '/profile' ? 'text-primary' : 'text-black'}`}
             >
               <Stethoscope className="h-4 w-4" />
               Vet Dashboard

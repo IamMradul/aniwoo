@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { completeGoogleAuth } from '@/src/lib/googleAuth'
 import { createClient } from '@supabase/supabase-js'
+import { createHmac } from 'crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +11,39 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SU
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let supabaseAdmin: any = null;
+
+const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+
+function createSessionCookieValue(payload: { id: string; email: string; role: 'vet' | 'pet_owner' }) {
+    const sessionPayload = {
+        ...payload,
+        exp: Date.now() + 1000 * 60 * 60 * 24 * 7
+    }
+
+    const encoded = Buffer.from(JSON.stringify(sessionPayload)).toString('base64url')
+    const signature = createHmac('sha256', SESSION_SECRET).update(encoded).digest('hex')
+    return `${encoded}.${signature}`
+}
+
+function redirectWithSessionCookie(
+    request: NextRequest,
+    redirectPathWithQuery: string,
+    payload: { id: string; email: string; role: 'vet' | 'pet_owner' }
+) {
+    const response = NextResponse.redirect(new URL(redirectPathWithQuery, request.url))
+
+    if (SESSION_SECRET) {
+        response.cookies.set('aniwoo_auth', createSessionCookieValue(payload), {
+            httpOnly: true,
+            sameSite: 'lax',
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: 60 * 60 * 24 * 7
+        })
+    }
+
+    return response
+}
 
 if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
     supabaseAdmin = createClient(
@@ -48,18 +82,33 @@ export async function GET(request: NextRequest) {
         }
 
         // Parse state parameter to get role ('vet' or 'pet_owner')
-        let role = 'pet_owner' // default
+        let role: 'vet' | 'pet_owner' = 'pet_owner' // default
+        let oauthRedirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback'
         if (state) {
             try {
                 const stateData = JSON.parse(decodeURIComponent(state))
-                role = stateData.role || 'pet_owner'
+                role = stateData.role === 'vet' ? 'vet' : 'pet_owner'
+
+                if (typeof stateData.redirectUri === 'string') {
+                    try {
+                        const parsedUri = new URL(stateData.redirectUri)
+                        const isAllowedHost = parsedUri.hostname === 'localhost' || parsedUri.hostname === '127.0.0.1'
+                        const isAllowedPath = parsedUri.pathname === '/api/auth/google/callback'
+
+                        if (isAllowedHost && isAllowedPath) {
+                            oauthRedirectUri = stateData.redirectUri
+                        }
+                    } catch {
+                        // Keep default redirect URI
+                    }
+                }
             } catch (e) {
                 console.warn('Failed to parse state parameter:', e)
             }
         }
 
         // Complete Google OAuth flow manually outside of Supabase
-        const googleUser = await completeGoogleAuth(code)
+        const googleUser = await completeGoogleAuth(code, oauthRedirectUri)
         console.log('Google user info retrieved via Custom Flow:', googleUser.email)
 
         // Check if user already exists in Aniwoo profiles
@@ -67,17 +116,43 @@ export async function GET(request: NextRequest) {
             .from('profiles')
             .select('*')
             .eq('email', googleUser.email)
-            .single()
+            .maybeSingle()
+
+        if (profileError) {
+            console.error('Error checking existing profile:', profileError)
+            return NextResponse.redirect(new URL('/login?error=profile_lookup_failed', request.url))
+        }
 
         if (existingProfile) {
             console.log('User already exists in profiles table:', existingProfile.id)
 
-            const redirectUrl = existingProfile.role === 'vet' ? '/vet-dashboard' : '/profile'
+            const roleToUse = existingProfile.role || role
+
+            const { error: profileUpdateError } = await supabaseAdmin
+                .from('profiles')
+                .upsert({
+                    id: existingProfile.id,
+                    name: existingProfile.name || googleUser.name,
+                    email: existingProfile.email || googleUser.email,
+                    role: roleToUse,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'id' })
+
+            if (profileUpdateError) {
+                console.error('Failed to sync existing profile role:', profileUpdateError)
+            }
+
+            const redirectUrl = '/profile'
             const sessionData = encodeURIComponent(JSON.stringify({
                 ...googleUser,
-                id: existingProfile.id
+                id: existingProfile.id,
+                role: roleToUse
             }))
-            return NextResponse.redirect(new URL(`${redirectUrl}?google_session=${sessionData}`, request.url))
+            return redirectWithSessionCookie(request, `${redirectUrl}?google_session=${sessionData}`, {
+                id: existingProfile.id,
+                email: googleUser.email,
+                role: roleToUse
+            })
         }
 
         // Check if user exists in Supabase Auth bypassing RLS
@@ -117,15 +192,42 @@ export async function GET(request: NextRequest) {
 
         // Create profile in our database using the Supabase Auth user ID
         if (authUserId) {
+            // Validate that auth.users contains this id (profiles FK often points to auth.users)
+            const { data: authUserCheck, error: authUserCheckError } = await supabaseAdmin.auth.admin.getUserById(authUserId)
+
+            if (authUserCheckError || !authUserCheck?.user) {
+                console.error('Auth user verification failed for profile FK:', authUserCheckError)
+
+                // Try to recover by creating auth user for this email and use the new id
+                const { data: recoveredAuthData, error: recoveredAuthError } = await supabaseAdmin.auth.admin.createUser({
+                    email: googleUser.email,
+                    password: `google_${googleUser.id}_${Date.now()}`,
+                    email_confirm: true,
+                    user_metadata: {
+                        name: googleUser.name,
+                        role: role,
+                        google_id: googleUser.id,
+                        picture: googleUser.picture
+                    }
+                })
+
+                if (recoveredAuthError || !recoveredAuthData?.user?.id) {
+                    console.error('Failed to recover missing auth user:', recoveredAuthError)
+                    return NextResponse.redirect(new URL('/login?error=auth_user_missing', request.url))
+                }
+
+                authUserId = recoveredAuthData.user.id
+            }
+
             const { error: profileCreateError } = await supabaseAdmin
                 .from('profiles')
-                .insert([{
+                .upsert({
                     id: authUserId, // Strict connection to auth user ID
                     name: googleUser.name,
                     email: googleUser.email,
                     role: role,
                     updated_at: new Date().toISOString()
-                }])
+                }, { onConflict: 'id' })
 
             if (profileCreateError) {
                 console.error('Profile creation error:', profileCreateError)
@@ -135,12 +237,17 @@ export async function GET(request: NextRequest) {
             console.log('Profile created successfully for Google user:', authUserId)
 
             // Redirect to appropriate dashboard
-            const redirectUrl = role === 'vet' ? '/vet-dashboard' : '/profile'
+            const redirectUrl = '/profile'
             const sessionData = encodeURIComponent(JSON.stringify({
                 ...googleUser,
-                id: authUserId
+                id: authUserId,
+                role: role
             }))
-            return NextResponse.redirect(new URL(`${redirectUrl}?google_session=${sessionData}`, request.url))
+            return redirectWithSessionCookie(request, `${redirectUrl}?google_session=${sessionData}`, {
+                id: authUserId,
+                email: googleUser.email,
+                role: role
+            })
         }
 
         // Fallback

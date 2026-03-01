@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
+import { PetOwnerProfile } from '@/components/profile/PetOwnerProfile';
+import { VetProfile } from '@/components/profile/VetProfile';
 
 export default function Profile() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -38,6 +40,21 @@ export default function Profile() {
   useEffect(() => {
     const checkSession = async () => {
       if (isAuthenticated) {
+        if (typeof window !== 'undefined' && user?.id && user?.email) {
+          await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              id: user.id,
+              email: user.email,
+              role: user.role || 'pet_owner'
+            })
+          }).catch(() => undefined);
+        }
+
         setCheckingSession(false);
         return;
       }
@@ -60,7 +77,7 @@ export default function Profile() {
     };
 
     checkSession();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   if (checkingSession) {
     return (
@@ -102,55 +119,23 @@ export default function Profile() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="grid gap-8 md:grid-cols-[1.1fr,1fr]">
-        <section className="rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100 md:p-8">
-          <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Hi, {user?.name}</h1>
-          <p className="mt-2 text-sm text-slate-600 sm:text-base">
-            This is your Aniwoo profile. In future releases, you&apos;ll manage pets, orders, and AI health reports
-            here.
-          </p>
+      {user?.role === 'vet' ? (
+        <VetProfile user={user} />
+      ) : (
+        <PetOwnerProfile user={user} />
+      )}
 
-          <div className="mt-6 space-y-4">
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account</h2>
-              <p className="mt-1 text-sm text-slate-700">
-                <span className="font-medium">Email:</span> {user?.email}
-              </p>
-              <p className="mt-0.5 text-sm text-slate-700">
-                <span className="font-medium">Name:</span> {user?.name}
-              </p>
-            </div>
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Coming soon</h2>
-              <ul className="mt-1 space-y-1 text-sm text-slate-600">
-                <li>• Pet profiles with age, breed, and health notes</li>
-                <li>• Saved vets, groomers, and sitters</li>
-                <li>• Full AI health scan history and downloads</li>
-              </ul>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={async () => {
-              await logout();
-              window.location.href = '/';
-            }}
-            className="mt-6 rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-red-500 hover:text-red-500"
-          >
-            Log out
-          </button>
-        </section>
-
-        <aside className="rounded-3xl bg-gradient-to-br from-primary via-secondary to-dark p-6 text-sm text-white">
-          <h2 className="font-display text-xl font-semibold">Your Aniwoo journey</h2>
-          <p className="mt-2 text-sm text-white/85">
-            This profile will become your hub for everything Aniwoo: food plans, vet docs, grooming, and more.
-          </p>
-          <p className="mt-4 text-xs text-white/80">
-            TODO: Connect this page to real backend user data, pet records, and AI report history.
-          </p>
-        </aside>
+      <div className="mt-12 flex justify-center border-t border-slate-200 pt-8">
+        <button
+          type="button"
+          onClick={async () => {
+            await logout();
+            window.location.href = '/';
+          }}
+          className="rounded-full border border-slate-300 px-8 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-red-500 hover:bg-red-50 hover:text-red-600"
+        >
+          Log out securely
+        </button>
       </div>
     </main>
   );

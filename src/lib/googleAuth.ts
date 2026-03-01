@@ -34,10 +34,12 @@ export interface GoogleAuthResponse {
 }
 
 // Generate Google OAuth URL
-export function generateGoogleAuthURL(state?: string): string {
+export function generateGoogleAuthURL(state?: string, redirectUri?: string): string {
+  const effectiveRedirectUri = redirectUri || REDIRECT_URI
+
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: effectiveRedirectUri,
     response_type: 'code',
     scope: SCOPES,
     access_type: 'offline',
@@ -52,7 +54,9 @@ export function generateGoogleAuthURL(state?: string): string {
 }
 
 // Exchange authorization code for tokens
-export async function exchangeCodeForTokens(code: string): Promise<GoogleAuthResponse> {
+export async function exchangeCodeForTokens(code: string, redirectUri?: string): Promise<GoogleAuthResponse> {
+  const effectiveRedirectUri = redirectUri || REDIRECT_URI
+
   const response = await fetch(GOOGLE_TOKEN_URL, {
     method: 'POST',
     headers: {
@@ -63,7 +67,7 @@ export async function exchangeCodeForTokens(code: string): Promise<GoogleAuthRes
       client_secret: GOOGLE_CLIENT_SECRET,
       code: code,
       grant_type: 'authorization_code',
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: effectiveRedirectUri,
     }),
   })
 
@@ -91,10 +95,10 @@ export async function getGoogleUserInfo(accessToken: string): Promise<GoogleUser
 }
 
 // Complete OAuth flow
-export async function completeGoogleAuth(code: string): Promise<GoogleUser> {
+export async function completeGoogleAuth(code: string, redirectUri?: string): Promise<GoogleUser> {
   try {
     // Exchange code for tokens
-    const tokens = await exchangeCodeForTokens(code)
+    const tokens = await exchangeCodeForTokens(code, redirectUri)
 
     // Get user info
     const userInfo = await getGoogleUserInfo(tokens.access_token)

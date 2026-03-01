@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { generateGoogleAuthURL } from '@/src/lib/googleAuth';
 
@@ -26,45 +26,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [initialised, setInitialised] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
+  const initialisedRef = useRef(false);
+
+  useEffect(() => {
+    initialisedRef.current = initialised;
+  }, [initialised]);
 
   // Debug: Log initialization state
   useEffect(() => {
     console.log('AuthProvider: initialised =', initialised, 'user =', user);
   }, [initialised, user]);
 
-  const fetchUserProfile = async (userId: string, email: string, metadataName?: string) => {
+  const fetchUserProfile = async (
+    userId: string,
+    email: string,
+    metadataName?: string,
+    preferredRole?: 'vet' | 'pet_owner' | null
+  ) => {
+    const normalizedPreferredRole = preferredRole === 'vet' || preferredRole === 'pet_owner'
+      ? preferredRole
+      : undefined;
+
     try {
       // Try to get profile from profiles table first - use maybeSingle to handle missing profiles
       const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
 
       if (profile && !error) {
+        let resolvedRole = profile.role as 'vet' | 'pet_owner' | undefined;
+
+        if (normalizedPreferredRole && resolvedRole !== normalizedPreferredRole) {
+          const { error: repairError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: userId,
+              name: profile.name || metadataName || email.split('@')[0] || 'Aniwoo user',
+              email: profile.email || email,
+              role: normalizedPreferredRole,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'id'
+            });
+
+          if (!repairError) {
+            resolvedRole = normalizedPreferredRole;
+          } else {
+            console.error('Failed to self-heal profile role:', repairError);
+          }
+        }
+
         return {
           id: profile.id,
           name: profile.name || metadataName || email.split('@')[0] || 'Aniwoo user',
           email: profile.email || email,
-          role: profile.role as 'vet' | 'pet_owner' | undefined
+          role: resolvedRole
         };
-      }
-
-      // If profile doesn't exist, try to create it
-      if (error && error.code === 'PGRST116') {
-        console.log('Profile not found, creating it...');
-        const name = metadataName || email.split('@')[0] || 'Aniwoo user';
-        const { data: newProfile, error: createError } = await supabase.from('profiles').insert({
-          id: userId,
-          name: name,
-          email: email,
-          role: null
-        }).select().single();
-
-        if (newProfile && !createError) {
-          return {
-            id: newProfile.id,
-            name: newProfile.name || name,
-            email: newProfile.email || email,
-            role: newProfile.role as 'vet' | 'pet_owner' | undefined
-          };
-        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -76,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: userId,
       name: metadataName || email.split('@')[0] || 'Aniwoo user',
       email: email,
-      role: undefined
+      role: normalizedPreferredRole
     };
   };
 
@@ -91,13 +106,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const googleUser = JSON.parse(googleSessionStr);
           console.log('Found custom Google session:', googleUser.email);
 
-          // Fetch full profile to get role and exact data
-          fetchUserProfile(googleUser.id, googleUser.email, googleUser.name).then(profile => {
-            if (mounted) {
-              setUser(profile);
-              setInitialised(true);
-            }
-          });
+          if (mounted) {
+            setUser({
+              id: googleUser.id,
+              name: googleUser.name || googleUser.email?.split('@')[0] || 'Aniwoo user',
+              email: googleUser.email,
+              role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' ? googleUser.role : 'pet_owner'
+            });
+            setInitialised(true);
+          }
+
+          // Bootstrap signed server session cookie for API routes.
+          fetch('/api/auth/session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              id: googleUser.id,
+              email: googleUser.email,
+              role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' ? googleUser.role : 'pet_owner'
+            })
+          }).catch(() => undefined);
         } catch (err) {
           console.error('Error parsing Google session:', err);
           localStorage.removeItem('googleUserSession');
@@ -112,8 +143,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: { subscription }
       } = supabase.auth.onAuthStateChange(async (event, session) => {
         try {
+          const persistedGoogleSession = typeof window !== 'undefined'
+            ? localStorage.getItem('googleUserSession')
+            : null;
+
           // Handle different auth events
           if (event === 'SIGNED_OUT' || !session) {
+            if (persistedGoogleSession) {
+              try {
+                const googleUser = JSON.parse(persistedGoogleSession);
+                if (mounted) {
+                  setUser({
+                    id: googleUser.id,
+                    name: googleUser.name || googleUser.email?.split('@')[0] || 'Aniwoo user',
+                    email: googleUser.email || '',
+                    role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' ? googleUser.role : 'pet_owner'
+                  });
+                  setInitialised(true);
+                }
+                return;
+              } catch {
+                if (typeof window !== 'undefined') {
+                  localStorage.removeItem('googleUserSession');
+                }
+              }
+            }
+
             if (mounted) {
               setUser(null);
               setInitialised(true);
@@ -136,18 +191,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
           }
 
-          // Handle INITIAL_SESSION and SIGNED_IN - restore user on page load/refresh
-          if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+          // Handle auth hydration and ensure role persistence for OAuth/email flows
+          if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || (event as any) === 'SIGNED_UP') {
             try {
+              const metadata = u.user_metadata as { name?: string; full_name?: string; role?: string } | null;
+              const pendingRole = typeof window !== 'undefined'
+                ? localStorage.getItem('pending_oauth_role') as 'vet' | 'pet_owner' | null
+                : null;
+              const metadataRole = metadata?.role === 'vet' || metadata?.role === 'pet_owner'
+                ? metadata.role
+                : null;
+              const roleToApply = pendingRole || metadataRole;
+              const resolvedName = metadata?.name || metadata?.full_name || u.email?.split('@')[0] || 'Aniwoo user';
+
+              if (roleToApply) {
+                const { data: existingProfile, error: existingProfileError } = await supabase
+                  .from('profiles')
+                  .select('id, role')
+                  .eq('id', u.id)
+                  .maybeSingle();
+
+                if (!existingProfileError && (!existingProfile || existingProfile.role !== roleToApply)) {
+                  const { error: roleUpsertError } = await supabase.from('profiles').upsert({
+                    id: u.id,
+                    name: resolvedName,
+                    email: u.email || '',
+                    role: roleToApply,
+                    updated_at: new Date().toISOString()
+                  }, {
+                    onConflict: 'id'
+                  });
+
+                  if (roleUpsertError) {
+                    console.error('Error applying role during auth hydration:', roleUpsertError);
+                  }
+                }
+              }
+
               const userData = await fetchUserProfile(
                 u.id,
                 u.email || '',
-                (u.user_metadata as { name?: string; full_name?: string } | null)?.name ||
-                (u.user_metadata as { name?: string; full_name?: string } | null)?.full_name
+                resolvedName,
+                roleToApply
               );
+
+              const finalRole = userData.role || roleToApply || undefined;
+
               if (mounted) {
-                setUser(userData);
+                console.log('AuthProvider: Fetched user data:', { ...userData, role: finalRole });
+                setUser({ ...userData, role: finalRole });
                 setInitialised(true);
+              }
+
+              if (pendingRole && typeof window !== 'undefined') {
+                localStorage.removeItem('pending_oauth_role');
               }
             } catch (error) {
               console.error('Error fetching user profile on initial session:', error);
@@ -163,66 +260,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
             }
             return;
-          }
-
-          // On sign up or sign in, ensure profile exists
-          if (event === 'SIGNED_IN' as any || event === 'SIGNED_UP' as any) {
-            try {
-              const metadataName = (u.user_metadata as { name?: string; full_name?: string } | null)?.name ||
-                (u.user_metadata as { name?: string; full_name?: string } | null)?.full_name;
-              const name = metadataName || u.email?.split('@')[0] || 'Aniwoo user';
-
-              // Check if there's a pending OAuth role from Google sign-in
-              const pendingRole = typeof window !== 'undefined' ? localStorage.getItem('pending_oauth_role') as 'vet' | 'pet_owner' | null : null;
-
-              // Upsert profile to ensure it exists (preserve existing role if set, use pending role for new OAuth users)
-              const { data: existingProfile } = await supabase.from('profiles').select('role').eq('id', u.id).maybeSingle();
-              const roleToUse = existingProfile?.role || pendingRole || null;
-
-              await supabase.from('profiles').upsert({
-                id: u.id,
-                name: name,
-                email: u.email || '',
-                role: roleToUse,
-                updated_at: new Date().toISOString()
-              }, {
-                onConflict: 'id'
-              });
-
-              // Clear pending role after using it
-              if (pendingRole && typeof window !== 'undefined') {
-                localStorage.removeItem('pending_oauth_role');
-              }
-            } catch (error) {
-              console.error('Error upserting profile:', error);
-              // Continue even if profile upsert fails
-            }
-          }
-
-          // Handle SIGNED_UP events
-          if (event === 'SIGNED_UP' as any) {
-            try {
-              const userData = await fetchUserProfile(
-                u.id,
-                u.email || '',
-                (u.user_metadata as { name?: string; full_name?: string } | null)?.name ||
-                (u.user_metadata as { name?: string; full_name?: string } | null)?.full_name
-              );
-              if (mounted) {
-                setUser(userData);
-              }
-            } catch (error) {
-              console.error('Error fetching user profile in auth state change:', error);
-              // Set user with basic info even if profile fetch fails
-              if (mounted) {
-                setUser({
-                  id: u.id,
-                  name: (u.user_metadata as { name?: string } | null)?.name || u.email?.split('@')[0] || 'User',
-                  email: u.email || '',
-                  role: undefined
-                });
-              }
-            }
           }
         } catch (error) {
           console.error('Error in auth state change:', error);
@@ -249,7 +286,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // But set a shorter timeout as backup (safety timeout will also catch this)
           if (session && mounted) {
             setTimeout(() => {
-              if (mounted && !initialised) {
+              if (mounted && !initialisedRef.current) {
                 // Fallback: if INITIAL_SESSION didn't fire, initialize anyway
                 const u = session.user;
                 setUser({
@@ -278,7 +315,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Safety timeout - always initialize after 1000ms max for faster loading
       // Increased timeout to give Supabase more time to respond
       const safetyTimeout = setTimeout(() => {
-        if (mounted && !initialised) {
+        if (mounted && !initialisedRef.current) {
           console.warn('Auth initialization timeout - forcing initialization');
           setInitialised(true);
         }
@@ -367,6 +404,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const finalRole = userData.role || role;
       setUser({ ...userData, role: finalRole });
 
+      await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: u.id,
+          email: u.email || email,
+          role: finalRole || 'pet_owner'
+        })
+      }).catch(() => undefined);
+
       // Verify user was set
       if (!userData.id) {
         throw new Error('Failed to load user profile');
@@ -393,7 +443,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) {
-        console.error('Supabase signup error:', error);
         throw new Error(error.message || 'Failed to create account');
       }
 
@@ -473,7 +522,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (verifyError || !verifyProfile) {
-        console.error('Error verifying profile:', verifyError);
         throw new Error('Profile verification failed. Please try logging in.');
       }
 
@@ -484,6 +532,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...userData,
         role: verifyProfile.role || role
       });
+
+      await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: u.id,
+          email: u.email || email,
+          role: (verifyProfile.role || role) as 'vet' | 'pet_owner'
+        })
+      }).catch(() => undefined);
 
       console.log('Registration successful, profile created:', verifyProfile);
     } catch (error: any) {
@@ -501,16 +562,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('pending_oauth_role', role);
       }
 
-      // Create state parameter with role information (this goes to Google and comes back)
-      const state = encodeURIComponent(JSON.stringify({ role }));
+      const redirectUri = `${window.location.origin}/api/auth/google/callback`;
 
-      // Generate Custom Google OAuth URL (directs to accounts.google.com)
-      const authUrl = generateGoogleAuthURL(state);
+      // Create state parameter with role + redirect URI (goes to Google and comes back to our API callback)
+      const state = encodeURIComponent(JSON.stringify({ role, redirectUri }));
 
-      // Redirect out
-      if (typeof window !== 'undefined') {
-        window.location.href = authUrl;
-      }
+      // Build direct Google OAuth URL and redirect
+      const authUrl = generateGoogleAuthURL(state, redirectUri);
+      window.location.href = authUrl;
 
     } catch (error: any) {
       console.error('Error initiating Google OAuth URL:', error);
@@ -524,6 +583,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       console.log('Logging out...');
+      await fetch('/api/auth/session', {
+        method: 'DELETE',
+        credentials: 'include'
+      }).catch(() => undefined);
+
       // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
       if (error) {
