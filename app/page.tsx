@@ -71,9 +71,11 @@ const HeroSection = () => {
         loop
         playsInline
         aria-hidden="true"
+        onEnded={(e) => {
+          e.currentTarget.play().catch(() => { });
+        }}
       >
-        <source src="/media/aniwoo-hero.webm" type="video/webm" />
-        <source src="/media/aniwoo-hero.mp4" type="video/mp4" />
+        <source src="https://nysvcajjiqpqteuxxkmd.supabase.co/storage/v1/object/public/Hero%20video/aniwoo-hero.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/65 to-dark/90" />
 

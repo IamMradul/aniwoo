@@ -11,6 +11,29 @@ export default function Profile() {
   const router = useRouter();
   const [checkingSession, setCheckingSession] = useState(true);
 
+  // Handle Google Direct OAuth Session Hydration
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const googleSession = urlParams.get('google_session');
+      if (googleSession) {
+        try {
+          // Save to local storage for AuthProvider to pick up
+          localStorage.setItem('googleUserSession', googleSession);
+
+          // Clean the URL without triggering a full page reload immediately
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+
+          // Force a hard reload so AuthProvider re-reads localStorage and initializes
+          window.location.reload();
+        } catch (e) {
+          console.error('Failed to parse google session:', e);
+        }
+      }
+    }
+  }, []);
+
   // Check session directly if AuthProvider hasn't loaded yet
   useEffect(() => {
     const checkSession = async () => {

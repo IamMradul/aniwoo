@@ -30,6 +30,29 @@ export default function VetDashboard() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Handle Google Direct OAuth Session Hydration
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const googleSession = urlParams.get('google_session');
+      if (googleSession) {
+        try {
+          // Save to local storage for AuthProvider to pick up
+          localStorage.setItem('googleUserSession', googleSession);
+
+          // Clean the URL without triggering a full page reload immediately
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+
+          // Force a hard reload so AuthProvider re-reads localStorage and initializes
+          window.location.reload();
+        } catch (e) {
+          console.error('Failed to parse google session:', e);
+        }
+      }
+    }
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -158,11 +181,10 @@ export default function VetDashboard() {
 
       {message && (
         <div
-          className={`mb-6 rounded-xl p-4 ${
-            message.type === 'success'
+          className={`mb-6 rounded-xl p-4 ${message.type === 'success'
               ? 'bg-green-50 text-green-800 border border-green-200'
               : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
+            }`}
         >
           {message.text}
         </div>

@@ -1,118 +1,126 @@
-// Google Authentication Service using Google Identity Services
-// This is separate from Supabase OAuth
+// Google OAuth Configuration
+const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!
 
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: {
-            client_id: string;
-            callback: (response: { credential: string }) => void;
-          }) => void;
-          prompt: () => void;
-          renderButton: (
-            element: HTMLElement,
-            config: {
-              type: string;
-              theme: string;
-              size: string;
-              text: string;
-              shape: string;
-              logo_alignment: string;
-            }
-          ) => void;
-        };
-      };
-    };
-  }
+// Google OAuth endpoints
+const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
+const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
+const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo'
+
+// OAuth scopes
+const SCOPES = [
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'https://www.googleapis.com/auth/userinfo.email'
+].join(' ')
+
+// Redirect URI
+const REDIRECT_URI = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback';
+
+
+export interface GoogleUser {
+  id: string
+  email: string
+  name: string
+  picture: string
+  verified_email: boolean
 }
 
-export interface GoogleCredentialResponse {
-  credential: string;
-  select_by: string;
+export interface GoogleAuthResponse {
+  access_token: string
+  token_type: string
+  expires_in: number
+  refresh_token?: string
+  scope: string
 }
 
-export const loadGoogleScript = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    // Check if script is already loaded
-    if (window.google?.accounts?.id) {
-      resolve();
-      return;
-    }
+// Generate Google OAuth URL
+export function generateGoogleAuthURL(state?: string): string {
+  const params = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'code',
+    scope: SCOPES,
+    access_type: 'offline',
+    prompt: 'consent'
+  })
 
-    // Check if script tag already exists
-    const existingScript = document.querySelector('script[src*="accounts.google.com/gsi/client"]');
-    if (existingScript) {
-      // Wait for it to load
-      existingScript.addEventListener('load', () => resolve());
-      existingScript.addEventListener('error', reject);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve();
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-};
-
-export const initializeGoogleAuth = (
-  clientId: string,
-  callback: (response: GoogleCredentialResponse) => void
-) => {
-  if (!window.google?.accounts?.id) {
-    console.error('Google Identity Services not loaded');
-    return;
+  if (state) {
+    params.append('state', state)
   }
 
-  window.google.accounts.id.initialize({
-    client_id: clientId,
-    callback: callback,
-  });
-};
+  return `${GOOGLE_AUTH_URL}?${params.toString()}`
+}
 
-export const decodeGoogleToken = (credential: string): {
-  sub: string;
-  email: string;
-  name: string;
-  picture?: string;
-  email_verified?: boolean;
-  given_name?: string;
-  family_name?: string;
-} => {
+// Exchange authorization code for tokens
+export async function exchangeCodeForTokens(code: string): Promise<GoogleAuthResponse> {
+  const response = await fetch(GOOGLE_TOKEN_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      client_secret: GOOGLE_CLIENT_SECRET,
+      code: code,
+      grant_type: 'authorization_code',
+      redirect_uri: REDIRECT_URI,
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Failed to exchange code for tokens: ${error}`)
+  }
+
+  return response.json()
+}
+
+// Get user info from Google
+export async function getGoogleUserInfo(accessToken: string): Promise<GoogleUser> {
+  const response = await fetch(GOOGLE_USERINFO_URL, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to get user info from Google')
+  }
+
+  return response.json()
+}
+
+// Complete OAuth flow
+export async function completeGoogleAuth(code: string): Promise<GoogleUser> {
   try {
-    // JWT token has 3 parts separated by dots
-    const parts = credential.split('.');
-    if (parts.length !== 3) {
-      throw new Error('Invalid JWT token');
-    }
+    // Exchange code for tokens
+    const tokens = await exchangeCodeForTokens(code)
 
-    // Decode the payload (second part)
-    const payload = parts[1];
-    // Add padding if needed
-    let base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-    // Add padding
-    while (base64.length % 4) {
-      base64 += '=';
-    }
-    
-    const decoded = JSON.parse(atob(base64));
+    // Get user info
+    const userInfo = await getGoogleUserInfo(tokens.access_token)
 
-    return {
-      sub: decoded.sub,
-      email: decoded.email,
-      name: decoded.name || `${decoded.given_name || ''} ${decoded.family_name || ''}`.trim(),
-      picture: decoded.picture,
-      email_verified: decoded.email_verified,
-      given_name: decoded.given_name,
-      family_name: decoded.family_name,
-    };
+    return userInfo
   } catch (error) {
-    console.error('Error decoding Google token:', error);
-    throw error;
+    console.error('Google OAuth error:', error)
+    throw new Error('Google authentication failed')
   }
-};
+}
+
+// Validate Google ID token (for server-side verification)
+export async function validateGoogleIdToken(idToken: string): Promise<GoogleUser> {
+  const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`)
+
+  if (!response.ok) {
+    throw new Error('Invalid Google ID token')
+  }
+
+  const tokenInfo = await response.json()
+
+  return {
+    id: tokenInfo.sub,
+    email: tokenInfo.email,
+    name: tokenInfo.name,
+    picture: tokenInfo.picture,
+    verified_email: tokenInfo.email_verified
+  }
+}

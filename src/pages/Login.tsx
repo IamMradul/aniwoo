@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../context/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Stethoscope, User } from 'lucide-react';
 import { GoogleSignIn } from '../components/auth/GoogleSignIn';
 
@@ -18,9 +18,19 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, user, isLoading } = useAuth();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<'vet' | 'pet_owner' | null>(null);
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (user.role === 'vet') {
+        navigate('/vet-dashboard', { replace: true });
+      } else {
+        navigate('/profile', { replace: true });
+      }
+    }
+  }, [user, isLoading, navigate]);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
 
@@ -86,11 +96,10 @@ const Login = () => {
                     setSelectedRole('vet');
                     setValue('role', 'vet');
                   }}
-                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${
-                    selectedRole === 'vet'
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${selectedRole === 'vet'
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-slate-200 text-slate-600 hover:border-primary/50'
-                  }`}
+                    }`}
                 >
                   <Stethoscope className="h-4 w-4" />
                   Veterinarian
@@ -101,11 +110,10 @@ const Login = () => {
                     setSelectedRole('pet_owner');
                     setValue('role', 'pet_owner');
                   }}
-                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${
-                    selectedRole === 'pet_owner'
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm font-semibold transition ${selectedRole === 'pet_owner'
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-slate-200 text-slate-600 hover:border-primary/50'
-                  }`}
+                    }`}
                 >
                   <User className="h-4 w-4" />
                   Pet Owner
