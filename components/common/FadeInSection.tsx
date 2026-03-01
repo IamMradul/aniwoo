@@ -1,12 +1,12 @@
 'use client';
 
-import { ReactNode, HTMLAttributes } from 'react';
-import { motion } from 'framer-motion';
+import { ReactNode } from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 
 type FadeInSectionProps = {
   children: ReactNode;
   delay?: number;
-} & HTMLAttributes<HTMLElement>;
+} & Omit<HTMLMotionProps<'section'>, 'children' | 'initial' | 'whileInView' | 'viewport' | 'transition'>;
 
 export const FadeInSection = ({ children, delay = 0, className, ...rest }: FadeInSectionProps) => {
   return (

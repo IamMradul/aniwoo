@@ -8,7 +8,7 @@ declare global {
         id: {
           initialize: (config: {
             client_id: string;
-            callback: (response: { credential: string }) => void;
+            callback: (response: GoogleCredentialResponse) => void;
           }) => void;
           prompt: () => void;
           renderButton: (
@@ -30,7 +30,7 @@ declare global {
 
 export interface GoogleCredentialResponse {
   credential: string;
-  select_by: string;
+  select_by?: string;
 }
 
 export const loadGoogleScript = (): Promise<void> => {

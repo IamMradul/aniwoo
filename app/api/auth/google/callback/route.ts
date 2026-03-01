@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { completeGoogleAuth } from '@/src/lib/googleAuth'
 import { createClient } from '@supabase/supabase-js'
 
+export const dynamic = 'force-dynamic'
+
 // Create a Supabase client with service role key for server-side operations
 // Since this is going to be running in node on next dev/start
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;

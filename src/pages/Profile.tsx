@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 const Profile = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const displayName = user?.name ?? 'Pet Parent';
+  const email = user?.email ?? 'Not available';
 
   if (!isAuthenticated) {
     return (
@@ -36,7 +38,7 @@ const Profile = () => {
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="grid gap-8 md:grid-cols-[1.1fr,1fr]">
         <section className="rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100 md:p-8">
-          <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Hi, {user.name}</h1>
+          <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Hi, {displayName}</h1>
           <p className="mt-2 text-sm text-slate-600 sm:text-base">
             This is your Aniwoo profile. In future releases, you&apos;ll manage pets, orders, and AI health reports
             here.
@@ -46,10 +48,10 @@ const Profile = () => {
             <div>
               <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account</h2>
               <p className="mt-1 text-sm text-slate-700">
-                <span className="font-medium">Email:</span> {user.email}
+                <span className="font-medium">Email:</span> {email}
               </p>
               <p className="mt-0.5 text-sm text-slate-700">
-                <span className="font-medium">Name:</span> {user.name}
+                <span className="font-medium">Name:</span> {displayName}
               </p>
             </div>
             <div>
