@@ -14,7 +14,7 @@ let supabaseAdmin: any = null;
 
 const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
-function createSessionCookieValue(payload: { id: string; email: string; role: 'vet' | 'pet_owner' }) {
+function createSessionCookieValue(payload: { id: string; email: string; role: 'vet' | 'pet_owner' | 'admin' }) {
     const sessionPayload = {
         ...payload,
         exp: Date.now() + 1000 * 60 * 60 * 24 * 7
@@ -28,7 +28,7 @@ function createSessionCookieValue(payload: { id: string; email: string; role: 'v
 function redirectWithSessionCookie(
     request: NextRequest,
     redirectPathWithQuery: string,
-    payload: { id: string; email: string; role: 'vet' | 'pet_owner' }
+    payload: { id: string; email: string; role: 'vet' | 'pet_owner' | 'admin' }
 ) {
     const response = NextResponse.redirect(new URL(redirectPathWithQuery, request.url))
 
@@ -126,17 +126,26 @@ export async function GET(request: NextRequest) {
         if (existingProfile) {
             console.log('User already exists in profiles table:', existingProfile.id)
 
-            const roleToUse = existingProfile.role || role
+            const persistedRole = existingProfile.role === 'vet' || existingProfile.role === 'pet_owner' || existingProfile.role === 'admin'
+                ? existingProfile.role
+                : null
+            const roleToUse = persistedRole || role
+
+            // Keep existing role as source of truth. Only backfill when role is missing.
+            const profilePatch: Record<string, unknown> = {
+                name: existingProfile.name || googleUser.name,
+                email: existingProfile.email || googleUser.email,
+                updated_at: new Date().toISOString()
+            }
+
+            if (!persistedRole) {
+                profilePatch.role = roleToUse
+            }
 
             const { error: profileUpdateError } = await supabaseAdmin
                 .from('profiles')
-                .upsert({
-                    id: existingProfile.id,
-                    name: existingProfile.name || googleUser.name,
-                    email: existingProfile.email || googleUser.email,
-                    role: roleToUse,
-                    updated_at: new Date().toISOString()
-                }, { onConflict: 'id' })
+                .update(profilePatch)
+                .eq('id', existingProfile.id)
 
             if (profileUpdateError) {
                 console.error('Failed to sync existing profile role:', profileUpdateError)

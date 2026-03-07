@@ -8,13 +8,13 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role?: 'vet' | 'pet_owner';
+  role?: 'vet' | 'pet_owner' | 'admin';
 };
 
 type AuthContextValue = {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, role: 'vet' | 'pet_owner') => Promise<void>;
+  login: (email: string, password: string, role?: 'vet' | 'pet_owner') => Promise<void>;
   register: (name: string, email: string, password: string, role: 'vet' | 'pet_owner') => Promise<void>;
   loginWithGoogle: (role: 'vet' | 'pet_owner') => Promise<void>;
   logout: () => Promise<void>;
@@ -27,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialised, setInitialised] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
   const initialisedRef = useRef(false);
+  const isLoggingOutRef = useRef(false);
 
   useEffect(() => {
     initialisedRef.current = initialised;
@@ -41,9 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userId: string,
     email: string,
     metadataName?: string,
-    preferredRole?: 'vet' | 'pet_owner' | null
+    preferredRole?: 'vet' | 'pet_owner' | 'admin' | null
   ) => {
-    const normalizedPreferredRole = preferredRole === 'vet' || preferredRole === 'pet_owner'
+    const normalizedPreferredRole = preferredRole === 'vet' || preferredRole === 'pet_owner' || preferredRole === 'admin'
       ? preferredRole
       : undefined;
 
@@ -52,9 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
 
       if (profile && !error) {
-        let resolvedRole = profile.role as 'vet' | 'pet_owner' | undefined;
+        let resolvedRole = profile.role as 'vet' | 'pet_owner' | 'admin' | undefined;
 
-        if (normalizedPreferredRole && resolvedRole !== normalizedPreferredRole) {
+        // Only apply a preferred role when no role exists yet.
+        if (normalizedPreferredRole && !resolvedRole) {
           const { error: repairError } = await supabase
             .from('profiles')
             .upsert({
@@ -111,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               id: googleUser.id,
               name: googleUser.name || googleUser.email?.split('@')[0] || 'Aniwoo user',
               email: googleUser.email,
-              role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' ? googleUser.role : 'pet_owner'
+              role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' || googleUser.role === 'admin' ? googleUser.role : 'pet_owner'
             });
             setInitialised(true);
           }
@@ -126,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({
               id: googleUser.id,
               email: googleUser.email,
-              role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' ? googleUser.role : 'pet_owner'
+              role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' || googleUser.role === 'admin' ? googleUser.role : 'pet_owner'
             })
           }).catch(() => undefined);
         } catch (err) {
@@ -149,6 +151,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           // Handle different auth events
           if (event === 'SIGNED_OUT' || !session) {
+            if (isLoggingOutRef.current) {
+              if (mounted) {
+                setUser(null);
+                setInitialised(true);
+              }
+              return;
+            }
+
             if (persistedGoogleSession) {
               try {
                 const googleUser = JSON.parse(persistedGoogleSession);
@@ -157,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     id: googleUser.id,
                     name: googleUser.name || googleUser.email?.split('@')[0] || 'Aniwoo user',
                     email: googleUser.email || '',
-                    role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' ? googleUser.role : 'pet_owner'
+                    role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' || googleUser.role === 'admin' ? googleUser.role : 'pet_owner'
                   });
                   setInitialised(true);
                 }
@@ -196,9 +206,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try {
               const metadata = u.user_metadata as { name?: string; full_name?: string; role?: string } | null;
               const pendingRole = typeof window !== 'undefined'
-                ? localStorage.getItem('pending_oauth_role') as 'vet' | 'pet_owner' | null
+                ? localStorage.getItem('pending_oauth_role') as 'vet' | 'pet_owner' | 'admin' | null
                 : null;
-              const metadataRole = metadata?.role === 'vet' || metadata?.role === 'pet_owner'
+              const metadataRole = metadata?.role === 'vet' || metadata?.role === 'pet_owner' || metadata?.role === 'admin'
                 ? metadata.role
                 : null;
               const roleToApply = pendingRole || metadataRole;
@@ -211,7 +221,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   .eq('id', u.id)
                   .maybeSingle();
 
-                if (!existingProfileError && (!existingProfile || existingProfile.role !== roleToApply)) {
+                // Never overwrite an existing persisted role (e.g. admin).
+                if (!existingProfileError && (!existingProfile || !existingProfile.role)) {
                   const { error: roleUpsertError } = await supabase.from('profiles').upsert({
                     id: u.id,
                     name: resolvedName,
@@ -338,7 +349,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string, password: string, role: 'vet' | 'pet_owner') => {
+  const login = async (email: string, password: string, role?: 'vet' | 'pet_owner') => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
@@ -375,9 +386,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (!profile?.role) {
+          const fallbackRole = role || 'pet_owner';
           const { error: upsertError } = await supabase.from('profiles').upsert({
             id: u.id,
-            role: role,
+            role: fallbackRole,
             updated_at: new Date().toISOString()
           }, {
             onConflict: 'id'
@@ -401,7 +413,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
 
       // Use role from profile if available, otherwise use the role passed in
-      const finalRole = userData.role || role;
+      const finalRole = userData.role || role || 'pet_owner';
       setUser({ ...userData, role: finalRole });
 
       await fetch('/api/auth/session', {
@@ -542,7 +554,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           id: u.id,
           email: u.email || email,
-          role: (verifyProfile.role || role) as 'vet' | 'pet_owner'
+          role: (verifyProfile.role || role) as 'vet' | 'pet_owner' | 'admin'
         })
       }).catch(() => undefined);
 
@@ -581,8 +593,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    isLoggingOutRef.current = true;
+
     try {
       console.log('Logging out...');
+
+      // Clear local persistence first to avoid SIGNED_OUT rehydrating a stale Google session.
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('pending_oauth_role');
+        localStorage.removeItem('googleUserSession');
+      }
+
       await fetch('/api/auth/session', {
         method: 'DELETE',
         credentials: 'include'
@@ -594,13 +616,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Supabase signOut error:', error);
       }
 
-      // Clear local storage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('supabase.auth.token');
-        localStorage.removeItem('pending_oauth_role');
-        localStorage.removeItem('googleUserSession');
-      }
-
       // Clear user state
       setUser(null);
       console.log('Logout complete');
@@ -608,6 +623,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Error during logout:', error);
       // Still clear user state even if signOut fails
       setUser(null);
+    } finally {
+      isLoggingOutRef.current = false;
     }
   };
 

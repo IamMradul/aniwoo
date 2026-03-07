@@ -22,10 +22,10 @@ if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
 type BootstrapBody = {
   id?: string
   email?: string
-  role?: 'vet' | 'pet_owner'
+  role?: 'vet' | 'pet_owner' | 'admin'
 }
 
-function createSessionCookieValue(payload: { id: string; email: string; role: 'vet' | 'pet_owner' }) {
+function createSessionCookieValue(payload: { id: string; email: string; role: 'vet' | 'pet_owner' | 'admin' }) {
   const sessionPayload = {
     ...payload,
     exp: Date.now() + 1000 * 60 * 60 * 24 * 7
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
   let resolvedProfile = profile
 
   if (!resolvedProfile) {
-    const fallbackRole = body.role === 'vet' ? 'vet' : 'pet_owner'
+    const fallbackRole = body.role === 'vet' || body.role === 'admin' ? body.role : 'pet_owner'
     const fallbackName = email.split('@')[0] || 'Aniwoo user'
 
     const { data: createdProfile, error: createProfileError } = await supabaseAdmin
@@ -88,9 +88,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Profile identity mismatch' }, { status: 401 })
   }
 
-  const role = resolvedProfile.role === 'vet' || resolvedProfile.role === 'pet_owner'
+  const role = resolvedProfile.role === 'vet' || resolvedProfile.role === 'pet_owner' || resolvedProfile.role === 'admin'
     ? resolvedProfile.role
-    : (body.role === 'vet' ? 'vet' : 'pet_owner')
+    : (body.role === 'vet' || body.role === 'admin' ? body.role : 'pet_owner')
 
   const response = NextResponse.json({ success: true })
   response.cookies.set('aniwoo_auth', createSessionCookieValue({ id: userId, email, role }), {

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 type SessionPayload = {
   id: string
   email: string
-  role: 'vet' | 'pet_owner'
+  role: 'vet' | 'pet_owner' | 'admin'
   exp: number
 }
 

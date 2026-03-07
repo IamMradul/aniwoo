@@ -119,7 +119,20 @@ export default function Profile() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      {user?.role === 'vet' ? (
+      {user?.role === 'admin' ? (
+        <section className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm">
+          <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Admin account</h1>
+          <p className="mt-3 text-sm text-slate-600 sm:text-base">
+            You are signed in as an administrator. Open the admin portal to manage users, products, and platform operations.
+          </p>
+          <Link
+            href="/admin"
+            className="mt-6 inline-flex rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+          >
+            Open Admin Portal
+          </Link>
+        </section>
+      ) : user?.role === 'vet' ? (
         <VetProfile user={user} />
       ) : (
         <PetOwnerProfile user={user} />
