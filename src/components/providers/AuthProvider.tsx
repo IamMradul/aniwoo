@@ -2,7 +2,7 @@
 
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { generateGoogleAuthURL } from '@/src/lib/googleAuth';
+import { generateGoogleAuthURL } from '@/lib/googleAuth';
 
 type User = {
   id: string;

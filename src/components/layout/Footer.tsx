@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+'use client';
+
+import Link from 'next/link';
 import { PawPrint, Facebook, Instagram, Twitter } from 'lucide-react';
 
 export const Footer = () => {
@@ -22,27 +24,27 @@ export const Footer = () => {
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Quick Links</h3>
             <ul className="space-y-2 text-sm text-slate-600">
               <li>
-                <Link to="/" className="transition hover:text-primary">
+                <Link href="/" className="transition hover:text-primary">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/shop" className="transition hover:text-primary">
+                <Link href="/shop" className="transition hover:text-primary">
                   Services &amp; Shop
                 </Link>
               </li>
               <li>
-                <Link to="/ai-health-check" className="transition hover:text-primary">
+                <Link href="/ai-health-check" className="transition hover:text-primary">
                   AI Health Check
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="transition hover:text-primary">
+                <Link href="/about" className="transition hover:text-primary">
                   About
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="transition hover:text-primary">
+                <Link href="/contact" className="transition hover:text-primary">
                   Contact
                 </Link>
               </li>
@@ -128,5 +130,3 @@ export const Footer = () => {
     </footer>
   );
 };
-
-

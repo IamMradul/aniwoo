@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useRef, useState } from 'react';
 
 type Footprint = {
@@ -71,5 +73,3 @@ export const FootprintTrail = () => {
     </div>
   );
 };
-
-

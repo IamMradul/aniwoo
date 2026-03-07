@@ -1,3 +1,5 @@
+'use client';
+
 import { ReactNode } from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
@@ -20,5 +22,3 @@ export const FadeInSection = ({ children, delay = 0, className, ...rest }: FadeI
     </motion.section>
   );
 };
-
-

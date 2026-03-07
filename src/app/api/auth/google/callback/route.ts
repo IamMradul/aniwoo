@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { completeGoogleAuth } from '@/src/lib/googleAuth'
+import { completeGoogleAuth } from '@/lib/googleAuth'
 import { createClient } from '@supabase/supabase-js'
 import { createHmac } from 'crypto'
 
