@@ -108,12 +108,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const googleUser = JSON.parse(googleSessionStr);
           console.log('Found custom Google session:', googleUser.email);
 
+          const baseRole = googleUser.role === 'vet' || googleUser.role === 'pet_owner' || googleUser.role === 'admin'
+            ? googleUser.role
+            : 'pet_owner';
+
           if (mounted) {
             setUser({
               id: googleUser.id,
               name: googleUser.name || googleUser.email?.split('@')[0] || 'Aniwoo user',
               email: googleUser.email,
-              role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' || googleUser.role === 'admin' ? googleUser.role : 'pet_owner'
+              role: baseRole
             });
             setInitialised(true);
           }
@@ -128,9 +132,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({
               id: googleUser.id,
               email: googleUser.email,
-              role: googleUser.role === 'vet' || googleUser.role === 'pet_owner' || googleUser.role === 'admin' ? googleUser.role : 'pet_owner'
+              role: baseRole
             })
-          }).catch(() => undefined);
+          })
+            .then(async () => {
+              const response = await fetch('/api/profile', {
+                method: 'GET',
+                credentials: 'include'
+              });
+
+              if (!response.ok) {
+                return;
+              }
+
+              const payload = await response.json().catch(() => ({}));
+              const profile = payload?.data;
+              if (!profile?.id) {
+                return;
+              }
+
+              const syncedRole = profile.role === 'vet' || profile.role === 'pet_owner' || profile.role === 'admin'
+                ? profile.role
+                : baseRole;
+
+              const syncedUser = {
+                id: profile.id,
+                name: profile.name || googleUser.name || googleUser.email?.split('@')[0] || 'Aniwoo user',
+                email: profile.email || googleUser.email,
+                role: syncedRole
+              };
+
+              if (mounted) {
+                setUser(syncedUser);
+              }
+
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('googleUserSession', JSON.stringify({
+                  ...googleUser,
+                  id: syncedUser.id,
+                  email: syncedUser.email,
+                  name: syncedUser.name,
+                  role: syncedUser.role
+                }));
+              }
+            })
+            .catch(() => undefined);
         } catch (err) {
           console.error('Error parsing Google session:', err);
           localStorage.removeItem('googleUserSession');
