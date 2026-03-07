@@ -10,8 +10,59 @@ type ProductPayload = {
   price?: number
   category?: string
   image_url?: string
+  image_urls?: string[]
   in_stock?: boolean
   is_active?: boolean
+}
+
+const normalizeImageUrls = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((entry): entry is string => typeof entry === 'string')
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+  }
+
+  if (typeof value !== 'string') {
+    return []
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return []
+  }
+
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((entry): entry is string => typeof entry === 'string')
+          .map((entry) => entry.trim())
+          .filter(Boolean)
+      }
+    } catch {
+      return []
+    }
+  }
+
+  return [trimmed]
+}
+
+const encodeImageUrls = (imageUrls: string[]): string | null => {
+  if (imageUrls.length === 0) return null
+  if (imageUrls.length === 1) return imageUrls[0]
+  return JSON.stringify(imageUrls)
+}
+
+const mapProductRecord = (record: any) => {
+  const imageUrls = normalizeImageUrls(record?.image_url)
+
+  return {
+    ...record,
+    image_url: imageUrls[0] ?? null,
+    image_urls: imageUrls
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -29,7 +80,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
   }
 
-  return NextResponse.json({ data: data || [] })
+  return NextResponse.json({ data: (data || []).map(mapProductRecord) })
 }
 
 export async function POST(request: NextRequest) {
@@ -44,12 +95,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid payload: name and non-negative price are required' }, { status: 400 })
   }
 
+  const mergedImageUrls = normalizeImageUrls(body.image_urls)
+  if (mergedImageUrls.length === 0 && typeof body.image_url === 'string') {
+    mergedImageUrls.push(...normalizeImageUrls(body.image_url))
+  }
+
   const payload = {
     name: body.name.trim(),
     description: body.description?.trim() || null,
     price: body.price,
     category: body.category?.trim() || null,
-    image_url: body.image_url?.trim() || null,
+    image_url: encodeImageUrls(mergedImageUrls),
     in_stock: body.in_stock ?? true,
     is_active: body.is_active ?? true,
     updated_at: new Date().toISOString()
@@ -65,7 +121,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
   }
 
-  return NextResponse.json({ data }, { status: 201 })
+  return NextResponse.json({ data: mapProductRecord(data) }, { status: 201 })
 }
 
 export async function PATCH(request: NextRequest) {
@@ -87,7 +143,12 @@ export async function PATCH(request: NextRequest) {
   if (typeof body.name === 'string') updates.name = body.name.trim()
   if (typeof body.description === 'string') updates.description = body.description.trim() || null
   if (typeof body.category === 'string') updates.category = body.category.trim() || null
-  if (typeof body.image_url === 'string') updates.image_url = body.image_url.trim() || null
+  if (Array.isArray(body.image_urls)) {
+    const parsedUrls = normalizeImageUrls(body.image_urls)
+    updates.image_url = encodeImageUrls(parsedUrls)
+  } else if (typeof body.image_url === 'string') {
+    updates.image_url = encodeImageUrls(normalizeImageUrls(body.image_url))
+  }
   if (typeof body.in_stock === 'boolean') updates.in_stock = body.in_stock
   if (typeof body.is_active === 'boolean') updates.is_active = body.is_active
   if (typeof body.price === 'number' && !Number.isNaN(body.price) && body.price >= 0) updates.price = body.price
@@ -103,7 +164,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
   }
 
-  return NextResponse.json({ data })
+  return NextResponse.json({ data: mapProductRecord(data) })
 }
 
 export async function DELETE(request: NextRequest) {

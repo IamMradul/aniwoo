@@ -19,6 +19,7 @@ type Product = {
   price: number;
   category: string | null;
   image_url: string | null;
+  image_urls: string[];
   in_stock: boolean;
   is_active: boolean;
 };
@@ -28,7 +29,7 @@ type ProductForm = {
   description: string;
   price: string;
   category: string;
-  image_url: string;
+  image_urls: string[];
   in_stock: boolean;
   is_active: boolean;
 };
@@ -38,7 +39,7 @@ const initialForm: ProductForm = {
   description: '',
   price: '',
   category: '',
-  image_url: '',
+  image_urls: [],
   in_stock: true,
   is_active: true
 };
@@ -52,6 +53,7 @@ export default function AdminPortalPage() {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(initialForm);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const isAdmin = user?.role === 'admin';
 
@@ -77,7 +79,19 @@ export default function AdminPortalPage() {
       throw new Error(payload?.error || 'Failed to fetch products');
     }
 
-    setProducts(payload.data || []);
+    const normalizedProducts = (payload.data || []).map((product: any) => {
+      const imageUrls = Array.isArray(product?.image_urls)
+        ? product.image_urls.filter((entry: unknown): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+        : [];
+
+      return {
+        ...product,
+        image_url: imageUrls[0] || product?.image_url || null,
+        image_urls: imageUrls
+      } as Product;
+    });
+
+    setProducts(normalizedProducts);
     setProductsLoading(false);
   };
 
@@ -140,7 +154,7 @@ export default function AdminPortalPage() {
           description: form.description,
           price: parsedPrice,
           category: form.category,
-          image_url: form.image_url,
+          image_urls: form.image_urls,
           in_stock: form.in_stock,
           is_active: form.is_active
         })
@@ -158,6 +172,58 @@ export default function AdminPortalPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files;
+    if (!selectedFiles || selectedFiles.length === 0) return;
+
+    const files = Array.from(selectedFiles);
+    setUploadingImages(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      const response = await fetch('/api/admin/products/images', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to upload product images');
+      }
+
+      const uploadedUrls = Array.isArray(payload?.data?.urls)
+        ? payload.data.urls.filter((entry: unknown): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+        : [];
+
+      if (uploadedUrls.length === 0) {
+        throw new Error('No image URLs were returned from upload');
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        image_urls: Array.from(new Set([...prev.image_urls, ...uploadedUrls]))
+      }));
+    } catch (err: any) {
+      setError(err.message || 'Unable to upload images');
+    } finally {
+      setUploadingImages(false);
+      event.target.value = '';
+    }
+  };
+
+  const removeFormImage = (url: string) => {
+    setForm((prev) => ({
+      ...prev,
+      image_urls: prev.image_urls.filter((entry) => entry !== url)
+    }));
   };
 
   const toggleProductStatus = async (id: string, key: 'is_active' | 'in_stock', current: boolean) => {
@@ -304,14 +370,37 @@ export default function AdminPortalPage() {
             </div>
 
             <div>
-              <label htmlFor="imageUrl" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">Image URL</label>
+              <label htmlFor="productImages" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">Product photos</label>
               <input
-                id="imageUrl"
-                value={form.image_url}
-                onChange={(e) => setForm((prev) => ({ ...prev, image_url: e.target.value }))}
+                id="productImages"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
                 className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
-                placeholder="https://..."
               />
+              <p className="mt-1 text-xs text-slate-500">Upload one or more product images (max 10 files, 5MB each).</p>
+
+              {uploadingImages && (
+                <p className="mt-2 text-xs font-semibold text-primary">Uploading images...</p>
+              )}
+
+              {form.image_urls.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {form.image_urls.map((url) => (
+                    <div key={url} className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                      <img src={url} alt="Product preview" className="h-24 w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeFormImage(url)}
+                        className="absolute right-1 top-1 rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-red-600 shadow"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
@@ -373,6 +462,23 @@ export default function AdminPortalPage() {
                       <p className="mt-1 text-xs text-slate-500">
                         {product.category || 'General'} | INR {Number(product.price || 0).toFixed(2)}
                       </p>
+                      {product.image_urls.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {product.image_urls.slice(0, 4).map((url) => (
+                            <img
+                              key={url}
+                              src={url}
+                              alt={`${product.name} thumbnail`}
+                              className="h-12 w-12 rounded-lg border border-slate-200 object-cover"
+                            />
+                          ))}
+                          {product.image_urls.length > 4 && (
+                            <span className="inline-flex h-12 items-center rounded-lg bg-slate-100 px-2 text-xs font-semibold text-slate-600">
+                              +{product.image_urls.length - 4}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       {product.description && <p className="mt-2 text-sm text-slate-600">{product.description}</p>}
                     </div>
                     <div className="flex flex-wrap gap-2">
