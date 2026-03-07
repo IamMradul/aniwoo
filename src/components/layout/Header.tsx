@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { PawPrint, Stethoscope } from 'lucide-react';
+import { PawPrint } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
@@ -13,7 +13,7 @@ const navItems = [
 
 export const Header = () => {
   const location = useLocation();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-white/15 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.08)]">
@@ -44,17 +44,6 @@ export const Header = () => {
               {item.label}
             </NavLink>
           ))}
-          {isAuthenticated && user?.role === 'vet' && (
-            <NavLink
-              to="/vet-dashboard"
-              className={({ isActive }) =>
-                `flex items-center gap-1.5 transition-colors hover:text-primary ${isActive ? 'text-primary' : 'text-black'}`
-              }
-            >
-              <Stethoscope className="h-4 w-4" />
-              Vet Dashboard
-            </NavLink>
-          )}
         </nav>
 
         <div className="flex items-center gap-3">
