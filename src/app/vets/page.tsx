@@ -19,12 +19,47 @@ type Vet = {
   qualifications: string;
   bio: string | null;
   clinic_image_url: string | null;
+  clinic_image_urls?: string[];
   consultation_fee: number | null;
   profiles?: {
     name: string;
     email: string;
   };
 };
+
+const normalizeImageUrls = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((entry): entry is string => typeof entry === 'string')
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+  }
+
+  if (typeof value !== 'string') {
+    return []
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return []
+  }
+
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((entry): entry is string => typeof entry === 'string')
+          .map((entry) => entry.trim())
+          .filter(Boolean)
+      }
+    } catch {
+      return []
+    }
+  }
+
+  return [trimmed]
+}
 
 export default function Vets() {
   const { user, isAuthenticated } = useAuth();
@@ -85,8 +120,12 @@ export default function Vets() {
       // Combine vets with their profiles
       const vetsWithProfiles = vetsData.map(vet => {
         const profile = profilesData?.find(p => p.id === vet.user_id);
+        const clinicImageUrls = normalizeImageUrls(vet.clinic_image_url);
+
         return {
           ...vet,
+          clinic_image_url: clinicImageUrls[0] || null,
+          clinic_image_urls: clinicImageUrls,
           profiles: profile ? { name: profile.name, email: profile.email } : undefined
         };
       });

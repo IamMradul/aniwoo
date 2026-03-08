@@ -11,6 +11,55 @@ type SessionPayload = {
   exp: number
 }
 
+const normalizeImageUrls = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((entry): entry is string => typeof entry === 'string')
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+  }
+
+  if (typeof value !== 'string') {
+    return []
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return []
+  }
+
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((entry): entry is string => typeof entry === 'string')
+          .map((entry) => entry.trim())
+          .filter(Boolean)
+      }
+    } catch {
+      return []
+    }
+  }
+
+  return [trimmed]
+}
+
+const encodeImageUrls = (imageUrls: string[]): string | null => {
+  if (imageUrls.length === 0) return null
+  if (imageUrls.length === 1) return imageUrls[0]
+  return JSON.stringify(imageUrls)
+}
+
+const mapVetRecord = (record: any) => {
+  const clinicImageUrls = normalizeImageUrls(record?.clinic_image_url)
+  return {
+    ...record,
+    clinic_image_url: clinicImageUrls[0] ?? null,
+    clinic_image_urls: clinicImageUrls
+  }
+}
+
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -91,7 +140,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
-  return NextResponse.json({ data: data || null })
+  return NextResponse.json({ data: data ? mapVetRecord(data) : null })
 }
 
 export async function POST(request: NextRequest) {
@@ -115,6 +164,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid user' }, { status: 403 })
   }
 
+  const parsedClinicImageUrls = normalizeImageUrls(body?.clinic_image_urls)
+  if (parsedClinicImageUrls.length === 0 && typeof body?.clinic_image_url === 'string') {
+    parsedClinicImageUrls.push(...normalizeImageUrls(body.clinic_image_url))
+  }
+
   const payload = {
     user_id: userId,
     clinic_name: body?.clinic_name,
@@ -126,7 +180,7 @@ export async function POST(request: NextRequest) {
     experience_years: body?.experience_years,
     qualifications: body?.qualifications,
     bio: body?.bio ?? null,
-    clinic_image_url: body?.clinic_image_url ?? null,
+    clinic_image_url: encodeImageUrls(parsedClinicImageUrls),
     consultation_fee: body?.consultation_fee,
     updated_at: new Date().toISOString()
   }

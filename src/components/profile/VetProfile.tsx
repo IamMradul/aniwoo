@@ -33,6 +33,8 @@ export function VetProfile({ user }: { user: any }) {
     const [notification, setNotification] = useState<string | null>(null);
 
     const [saving, setSaving] = useState(false);
+    const [uploadingClinicImages, setUploadingClinicImages] = useState(false);
+    const [clinicImageUrls, setClinicImageUrls] = useState<string[]>([]);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     const {
@@ -85,6 +87,11 @@ export function VetProfile({ user }: { user: any }) {
                 setValue('qualifications', data.qualifications || '');
                 setValue('bio', data.bio || '');
                 setValue('clinic_image_url', data.clinic_image_url || '');
+                setClinicImageUrls(Array.isArray(data.clinic_image_urls)
+                    ? data.clinic_image_urls.filter((entry: unknown): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+                    : data.clinic_image_url
+                        ? [data.clinic_image_url]
+                        : []);
                 setValue('consultation_fee', data.consultation_fee?.toString() || '');
             }
         } catch (error) {
@@ -98,6 +105,14 @@ export function VetProfile({ user }: { user: any }) {
         setMessage(null);
 
         try {
+            const manualImageUrl = values.clinic_image_url?.trim();
+            const mergedClinicImageUrls = Array.from(
+                new Set([
+                    ...clinicImageUrls,
+                    ...(manualImageUrl ? [manualImageUrl] : [])
+                ])
+            );
+
             const response = await fetch('/api/vets', {
                 method: 'POST',
                 headers: {
@@ -115,7 +130,8 @@ export function VetProfile({ user }: { user: any }) {
                     experience_years: parseInt(values.experience_years),
                     qualifications: values.qualifications,
                     bio: values.bio || null,
-                    clinic_image_url: values.clinic_image_url || null,
+                    clinic_image_url: mergedClinicImageUrls[0] || null,
+                    clinic_image_urls: mergedClinicImageUrls,
                     consultation_fee: parseInt(values.consultation_fee)
                 })
             });
@@ -135,6 +151,57 @@ export function VetProfile({ user }: { user: any }) {
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleClinicImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFiles = event.target.files;
+        if (!selectedFiles || selectedFiles.length === 0) return;
+
+        const files = Array.from(selectedFiles);
+        setUploadingClinicImages(true);
+        setMessage(null);
+
+        try {
+            const formData = new FormData();
+            files.forEach((file) => {
+                formData.append('images', file);
+            });
+
+            const response = await fetch('/api/vets/images', {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            });
+
+            const payload = await response.json();
+            if (!response.ok) {
+                throw new Error(payload?.error || 'Failed to upload clinic images');
+            }
+
+            const uploadedUrls = Array.isArray(payload?.data?.urls)
+                ? payload.data.urls.filter((entry: unknown): entry is string => typeof entry === 'string' && entry.trim().length > 0)
+                : [];
+
+            if (uploadedUrls.length === 0) {
+                throw new Error('No image URLs were returned from upload');
+            }
+
+            setClinicImageUrls((prev) => Array.from(new Set([...prev, ...uploadedUrls])));
+            setValue('clinic_image_url', uploadedUrls[0]);
+        } catch (error: any) {
+            setMessage({ type: 'error', text: error.message || 'Failed to upload clinic images' });
+        } finally {
+            setUploadingClinicImages(false);
+            event.target.value = '';
+        }
+    };
+
+    const removeClinicImage = (url: string) => {
+        setClinicImageUrls((prev) => {
+            const next = prev.filter((entry) => entry !== url);
+            setValue('clinic_image_url', next[0] || '');
+            return next;
+        });
     };
     useEffect(() => {
         async function loadBookings() {
@@ -580,6 +647,43 @@ export function VetProfile({ user }: { user: any }) {
                             {errors.clinic_image_url && (
                                 <p className="mt-1 text-xs text-red-600">{errors.clinic_image_url.message}</p>
                             )}
+
+                            <div className="mt-4">
+                                <label htmlFor="clinic_images" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                    Upload Clinic Images
+                                </label>
+                                <input
+                                    id="clinic_images"
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleClinicImageUpload}
+                                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                    disabled={saving || uploadingClinicImages}
+                                />
+                                <p className="mt-1 text-xs text-slate-500">Upload one or more clinic photos (max 10 files, 5MB each).</p>
+
+                                {uploadingClinicImages && (
+                                    <p className="mt-2 text-xs font-semibold text-primary">Uploading clinic images...</p>
+                                )}
+
+                                {clinicImageUrls.length > 0 && (
+                                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                                        {clinicImageUrls.map((url) => (
+                                            <div key={url} className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                                                <img src={url} alt="Clinic preview" className="h-24 w-full object-cover" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeClinicImage(url)}
+                                                    className="absolute right-1 top-1 rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-red-600 shadow"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div>
