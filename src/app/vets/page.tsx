@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { Stethoscope, MapPin, Phone, Award, Building2, Search, RefreshCw, X, IndianRupee } from 'lucide-react';
@@ -67,6 +66,7 @@ export default function Vets() {
 
   const [vets, setVets] = useState<Vet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCity, setFilterCity] = useState('');
   const [filterSpecialization, setFilterSpecialization] = useState('');
@@ -87,53 +87,33 @@ export default function Vets() {
   const loadVets = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
 
-      // First, get all vets
-      const { data: vetsData, error: vetsError } = await supabase
-        .from('vets')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Use API endpoint instead of direct Supabase queries
+      const response = await fetch('/api/vets?getAll=true', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
-      if (vetsError) {
-        console.error('Error loading vets:', vetsError);
-        throw vetsError;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData?.error || `Failed to load vets: ${response.statusText}`);
       }
+
+      const { data: vetsData } = await response.json();
 
       if (!vetsData || vetsData.length === 0) {
         setVets([]);
-        setLoading(false);
         return;
       }
 
-      // Then, get profiles for each vet's user_id
-      const userIds = vetsData.map(vet => vet.user_id);
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, name, email')
-        .in('id', userIds);
-
-      if (profilesError) {
-        console.error('Error loading profiles:', profilesError);
-        // Continue even if profiles fail
-      }
-
-      // Combine vets with their profiles
-      const vetsWithProfiles = vetsData.map(vet => {
-        const profile = profilesData?.find(p => p.id === vet.user_id);
-        const clinicImageUrls = normalizeImageUrls(vet.clinic_image_url);
-
-        return {
-          ...vet,
-          clinic_image_url: clinicImageUrls[0] || null,
-          clinic_image_urls: clinicImageUrls,
-          profiles: profile ? { name: profile.name, email: profile.email } : undefined
-        };
-      });
-
-      setVets(vetsWithProfiles);
+      setVets(vetsData);
     } catch (error) {
       console.error('Error loading vets:', error);
       setVets([]);
+      setLoadError(error instanceof Error ? error.message : 'Failed to load veterinarians.');
     } finally {
       setLoading(false);
     }
@@ -163,6 +143,25 @@ export default function Vets() {
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center py-20">
           <p className="text-slate-600">Loading veterinarians...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-red-200 bg-red-50 px-6 py-8 text-center">
+          <h1 className="text-xl font-semibold text-red-700">Unable to load veterinarians</h1>
+          <p className="mt-2 text-sm text-red-600">{loadError}</p>
+          <button
+            type="button"
+            onClick={loadVets}
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Try again
+          </button>
         </div>
       </main>
     );

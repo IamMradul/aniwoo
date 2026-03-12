@@ -61,13 +61,24 @@ const mapVetRecord = (record: any) => {
 }
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
 let supabaseAdmin: any = null
+let supabasePublic: any = null
 
 if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
   supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
+
+if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+  supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
@@ -116,10 +127,64 @@ function readSessionFromCookie(request: NextRequest): SessionPayload | null {
 }
 
 export async function GET(request: NextRequest) {
+  // Check if requesting all vets (public endpoint)
+  const getAllVets = request.nextUrl.searchParams.get('getAll')
+  
+  if (getAllVets === 'true') {
+    const publicClient = supabaseAdmin ?? supabasePublic
+
+    if (!publicClient) {
+      return NextResponse.json({ error: 'Supabase public configuration missing' }, { status: 500 })
+    }
+
+    // Public endpoint - no authentication required
+    const { data, error } = await publicClient
+      .from('vets')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('[GET /api/vets] Error fetching all vets:', error)
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
+    }
+
+    // Get profiles for all vets
+    if (data && data.length > 0) {
+      let profilesData: Array<{ id: string; name: string | null; email: string | null }> | null = null
+
+      if (supabaseAdmin) {
+        const userIds = data.map((vet: any) => vet.user_id)
+        const { data: fetchedProfiles, error: profilesError } = await supabaseAdmin
+          .from('profiles')
+          .select('id, name, email')
+          .in('id', userIds)
+
+        if (profilesError) {
+          console.error('[GET /api/vets] Error fetching profiles:', profilesError)
+        } else {
+          profilesData = fetchedProfiles
+        }
+      }
+
+      const vetsWithProfiles = data.map((vet: any) => {
+        const profile = profilesData?.find((p: any) => p.id === vet.user_id)
+        return {
+          ...mapVetRecord(vet),
+          profiles: profile ? { name: profile.name, email: profile.email } : undefined
+        }
+      })
+
+      return NextResponse.json({ data: vetsWithProfiles })
+    }
+
+    return NextResponse.json({ data: [] })
+  }
+
   if (!supabaseAdmin) {
     return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 })
   }
 
+  // Authenticated endpoint - get specific vet profile by userId
   const session = readSessionFromCookie(request)
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
