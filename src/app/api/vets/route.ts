@@ -63,7 +63,7 @@ const mapVetRecord = (record: any) => {
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || ''
 
 let supabaseAdmin: any = null
 let supabasePublic: any = null
@@ -180,8 +180,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ data: [] })
   }
 
-  if (!supabaseAdmin) {
-    return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 })
+  if (!supabaseAdmin || !SESSION_SECRET) {
+    return NextResponse.json({ error: 'Server configuration missing: ANIWOO_SESSION_SECRET is required' }, { status: 500 })
   }
 
   // Authenticated endpoint - get specific vet profile by userId
@@ -209,8 +209,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!supabaseAdmin) {
-    return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 })
+  if (!supabaseAdmin || !SESSION_SECRET) {
+    return NextResponse.json({ error: 'Server configuration missing: ANIWOO_SESSION_SECRET is required' }, { status: 500 })
   }
 
   const session = readSessionFromCookie(request)

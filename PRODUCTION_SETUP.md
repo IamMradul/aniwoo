@@ -74,6 +74,8 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_secret
 ```
 
+`ANIWOO_SESSION_SECRET` must be a long random private string used only for signing the `aniwoo_auth` cookie. Do not reuse your Supabase service role key here.
+
 ## 5. Troubleshooting
 
 ### "No data showing" on vets page

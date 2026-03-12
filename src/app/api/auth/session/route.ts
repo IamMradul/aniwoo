@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || ''
 
 let supabaseAdmin: any = null
 
@@ -38,7 +38,7 @@ function createSessionCookieValue(payload: { id: string; email: string; role: 'v
 
 export async function POST(request: NextRequest) {
   if (!supabaseAdmin || !SESSION_SECRET) {
-    return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 })
+    return NextResponse.json({ error: 'Server configuration missing: ANIWOO_SESSION_SECRET is required' }, { status: 500 })
   }
 
   const body = await request.json().catch(() => ({})) as BootstrapBody

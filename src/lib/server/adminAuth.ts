@@ -13,7 +13,7 @@ export type SessionPayload = {
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
-const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || ''
 
 export const supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_KEY
   ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
@@ -65,9 +65,9 @@ export function readSessionFromCookie(request: NextRequest): SessionPayload | nu
 }
 
 export function requireAdmin(request: NextRequest): { session: SessionPayload } | { response: NextResponse } {
-  if (!supabaseAdmin) {
+  if (!supabaseAdmin || !SESSION_SECRET) {
     return {
-      response: NextResponse.json({ error: 'Server configuration missing' }, { status: 500 })
+      response: NextResponse.json({ error: 'Server configuration missing: ANIWOO_SESSION_SECRET is required' }, { status: 500 })
     }
   }
 

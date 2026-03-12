@@ -12,7 +12,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let supabaseAdmin: any = null;
 
-const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || ''
 
 function createSessionCookieValue(payload: { id: string; email: string; role: 'vet' | 'pet_owner' | 'admin' }) {
     const sessionPayload = {
@@ -32,15 +32,17 @@ function redirectWithSessionCookie(
 ) {
     const response = NextResponse.redirect(new URL(redirectPathWithQuery, request.url))
 
-    if (SESSION_SECRET) {
-        response.cookies.set('aniwoo_auth', createSessionCookieValue(payload), {
-            httpOnly: true,
-            sameSite: 'lax',
-            secure: process.env.NODE_ENV === 'production',
-            path: '/',
-            maxAge: 60 * 60 * 24 * 7
-        })
+    if (!SESSION_SECRET) {
+        return NextResponse.redirect(new URL('/login?error=session_secret_missing', request.url))
     }
+
+    response.cookies.set('aniwoo_auth', createSessionCookieValue(payload), {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7
+    })
 
     return response
 }
