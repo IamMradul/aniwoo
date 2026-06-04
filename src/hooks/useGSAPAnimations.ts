@@ -190,6 +190,7 @@ function initStatsCountUp() {
   statEls.forEach((el) => {
     const targetVal = parseFloat(el.dataset.statValue || '0');
     const suffix = el.dataset.statSuffix || '';
+    const decimals = parseInt(el.dataset.statDecimals || '0', 10);
 
     const obj = { val: 0 };
     gsap.to(obj, {
@@ -197,7 +198,13 @@ function initStatsCountUp() {
       duration: 1.5,
       ease: 'power1.out',
       onUpdate: () => {
-        el.textContent = Math.round(obj.val) + suffix;
+        if (decimals > 0) {
+          el.textContent = obj.val.toFixed(decimals) + suffix;
+        } else if (targetVal >= 1000) {
+          el.textContent = Math.round(obj.val).toLocaleString() + suffix;
+        } else {
+          el.textContent = Math.round(obj.val) + suffix;
+        }
       },
       scrollTrigger: {
         trigger: el,

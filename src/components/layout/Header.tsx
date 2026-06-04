@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PawPrint, Menu, X } from 'lucide-react';
+import { PawPrint, Menu, X, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { useTheme } from '@/components/providers/ThemeProvider';
 import { useState } from 'react';
 
 const navItems = [
@@ -18,12 +19,19 @@ const navItems = [
 export const Header = () => {
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-white/15 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.08)]">
+    <header
+      className="fixed inset-x-0 top-0 z-40 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
+      style={{
+        backgroundColor: 'var(--header-bg)',
+        borderBottom: '1px solid var(--header-border)',
+      }}
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
           <motion.div
@@ -34,60 +42,96 @@ export const Header = () => {
             <PawPrint className="h-5 w-5" />
           </motion.div>
           <div className="flex flex-col leading-tight">
-            <span className="font-display text-lg font-semibold text-black sm:text-xl">Aniwoo</span>
-            <span className="hidden text-xs font-medium text-black/70 sm:block">Your Pet&apos;s Best Friend</span>
+            <span className="font-display text-lg font-semibold sm:text-xl" style={{ color: 'var(--text-primary)' }}>Aniwoo</span>
+            <span className="hidden text-xs font-medium sm:block" style={{ color: 'var(--text-muted)' }}>Your Pet&apos;s Best Friend</span>
           </div>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav aria-label="Primary navigation" className="hidden items-center gap-6 text-sm font-medium text-black lg:flex">
+        <nav aria-label="Primary navigation" className="hidden items-center gap-6 text-sm font-medium lg:flex">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`transition-colors hover:text-primary ${pathname === item.href ? 'text-primary' : 'text-black'}`}
+              className={`transition-colors hover:text-primary ${pathname === item.href ? 'text-primary' : ''}`}
+              style={{ color: pathname === item.href ? undefined : 'var(--text-secondary)' }}
             >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        {/* Desktop Auth Buttons */}
+        {/* Desktop Actions */}
         <div className="hidden items-center gap-3 lg:flex">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-primary/10"
+            style={{ color: 'var(--text-secondary)' }}
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? (
+              <Moon className="h-[18px] w-[18px] theme-toggle-icon" />
+            ) : (
+              <Sun className="h-[18px] w-[18px] theme-toggle-icon" />
+            )}
+          </button>
+
           {isAuthenticated && user?.role === 'admin' && (
             <Link
               href="/admin"
-              className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${pathname === '/admin' ? 'border-primary text-primary' : 'border-slate-300 text-black hover:border-primary hover:text-primary'}`}
+              className="rounded-full border px-4 py-2 text-xs font-semibold transition"
+              style={{
+                borderColor: pathname === '/admin' ? '#FF6B35' : 'var(--border-color)',
+                color: pathname === '/admin' ? '#FF6B35' : 'var(--text-primary)',
+              }}
             >
               Admin Portal
             </Link>
           )}
           <Link
             href={isAuthenticated ? '/profile' : '/login'}
-            className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold text-black transition hover:border-primary hover:text-primary"
+            className="rounded-full border px-4 py-2 text-xs font-semibold transition hover:border-primary hover:text-primary"
+            style={{ borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
           >
             {isAuthenticated ? 'My Profile' : 'Log in'}
           </Link>
         </div>
 
-        {/* Status Badge (visible on all screens) */}
+        {/* Status Badge */}
         <span className="hidden rounded-full bg-secondary/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-secondary sm:inline-flex lg:px-3">
           {pathname === '/' ? 'All-in-one' : 'Platform'}
         </span>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="inline-flex lg:hidden p-2 text-black hover:text-primary transition"
-          aria-label="Toggle menu"
-          aria-expanded={isMobileMenuOpen}
-        >
-          {isMobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
-        </button>
+        {/* Mobile: Theme Toggle + Menu */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <button
+            onClick={toggleTheme}
+            className="flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-primary/10"
+            style={{ color: 'var(--text-secondary)' }}
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? (
+              <Moon className="h-[18px] w-[18px]" />
+            ) : (
+              <Sun className="h-[18px] w-[18px]" />
+            )}
+          </button>
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="inline-flex p-2 transition hover:text-primary"
+            style={{ color: 'var(--text-primary)' }}
+            aria-label="Toggle menu"
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -96,7 +140,12 @@ export const Header = () => {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="border-t border-white/10 bg-white/20 backdrop-blur-lg lg:hidden"
+          className="lg:hidden"
+          style={{
+            borderTop: '1px solid var(--border-color)',
+            backgroundColor: 'var(--header-bg)',
+            backdropFilter: 'blur(20px)',
+          }}
         >
           <nav className="mx-auto max-w-6xl flex flex-col px-4 py-4 sm:px-6">
             {navItems.map((item) => (
@@ -107,15 +156,16 @@ export const Header = () => {
                 className={`px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                   pathname === item.href
                     ? 'bg-primary/10 text-primary'
-                    : 'text-black hover:bg-slate-100'
+                    : 'hover:bg-primary/5'
                 }`}
+                style={{ color: pathname === item.href ? undefined : 'var(--text-primary)' }}
               >
                 {item.label}
               </Link>
             ))}
 
             {/* Mobile Auth Section */}
-            <div className="border-t border-white/10 mt-4 pt-4 flex flex-col gap-3">
+            <div className="mt-4 pt-4 flex flex-col gap-3" style={{ borderTop: '1px solid var(--border-color)' }}>
               {isAuthenticated && user?.role === 'admin' && (
                 <Link
                   href="/admin"
@@ -123,8 +173,12 @@ export const Header = () => {
                   className={`px-4 py-3 rounded-lg text-sm font-medium w-full transition ${
                     pathname === '/admin'
                       ? 'bg-primary/10 text-primary'
-                      : 'bg-slate-100 text-black hover:bg-slate-200'
+                      : ''
                   }`}
+                  style={{
+                    color: pathname === '/admin' ? undefined : 'var(--text-primary)',
+                    backgroundColor: pathname === '/admin' ? undefined : 'var(--bg-tertiary)',
+                  }}
                 >
                   Admin Portal
                 </Link>
