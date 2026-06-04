@@ -42,21 +42,21 @@ export default function Contact() {
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="grid gap-10 md:grid-cols-[1.1fr,1fr]">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Contact Aniwoo</h1>
-          <p className="mt-3 text-sm text-slate-600 sm:text-base">
+          <h1 className="font-display text-2xl font-semibold text-dark dark:text-white sm:text-3xl">Contact Aniwoo</h1>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 sm:text-base">
             Questions about vet services, grooming, or our AI health scanner? We&apos;d love to hear from you.
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
             <div>
-              <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                 Name
               </label>
               <input
                 id="name"
                 type="text"
                 {...register('name')}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="Your full name"
                 aria-invalid={errors.name ? 'true' : 'false'}
               />
@@ -68,14 +68,14 @@ export default function Contact() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <label htmlFor="email" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                 Email
               </label>
               <input
                 id="email"
                 type="email"
                 {...register('email')}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="you@example.com"
                 aria-invalid={errors.email ? 'true' : 'false'}
               />
@@ -87,13 +87,13 @@ export default function Contact() {
             </div>
 
             <div>
-              <label htmlFor="topic" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <label htmlFor="topic" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                 Topic
               </label>
               <select
                 id="topic"
                 {...register('topic')}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 aria-invalid={errors.topic ? 'true' : 'false'}
               >
                 <option value="">Select a topic</option>
@@ -112,14 +112,14 @@ export default function Contact() {
             </div>
 
             <div>
-              <label htmlFor="message" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <label htmlFor="message" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                 Message
               </label>
               <textarea
                 id="message"
                 rows={4}
                 {...register('message')}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="Tell us how we can help you and your pet."
                 aria-invalid={errors.message ? 'true' : 'false'}
               />
@@ -146,22 +146,22 @@ export default function Contact() {
           </form>
         </div>
 
-        <aside aria-label="Aniwoo contact details" className="space-y-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-          <h2 className="text-sm font-semibold text-dark">Other ways to reach us</h2>
-          <ul className="space-y-2 text-sm text-slate-600">
+        <aside aria-label="Aniwoo contact details" className="space-y-4 rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-sm ring-1 ring-slate-100 dark:ring-slate-800">
+          <h2 className="text-sm font-semibold text-dark dark:text-white">Other ways to reach us</h2>
+          <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
             <li>Email: support@aniwoo.pet</li>
             <li>Phone: +1 (555) 987-1234</li>
             <li>Address: 123 Pet Lane, Paw City</li>
           </ul>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Support hours</p>
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Support hours</p>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
               Monday–Friday: 9:00 AM – 6:00 PM (Local time) • Response within 1–2 business days.
             </p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Coming soon</p>
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Coming soon</p>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
               Live chat, in-app messaging, and dedicated breeder support will be available in future Aniwoo releases.
             </p>
           </div>

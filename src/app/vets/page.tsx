@@ -142,7 +142,7 @@ export default function Vets() {
     return (
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex items-center justify-center py-20">
-          <p className="text-slate-600">Loading veterinarians...</p>
+          <p className="text-slate-600 dark:text-slate-300">Loading veterinarians...</p>
         </div>
       </main>
     );
@@ -239,14 +239,14 @@ export default function Vets() {
     <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Vet Directory</h1>
-          <p className="mt-3 text-sm text-slate-600 sm:text-base">
+          <h1 className="font-display text-2xl font-semibold text-dark dark:text-white sm:text-3xl">Vet Directory</h1>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 sm:text-base">
             Connect with trusted, certified veterinarians in your area and book appointments with ease.
           </p>
         </div>
         <button
           onClick={loadVets}
-          className="flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary"
+          className="flex items-center gap-2 rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:border-primary hover:text-primary"
           title="Refresh vet listings"
         >
           <RefreshCw className="h-4 w-4" />
@@ -255,7 +255,7 @@ export default function Vets() {
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-8 space-y-4 rounded-2xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100">
+      <div className="mb-8 space-y-4 rounded-2xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
           <input
@@ -263,19 +263,19 @@ export default function Vets() {
             placeholder="Search by clinic name, specialization, or location..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 pl-10 pr-4 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 pl-10 pr-4 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
           />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 mb-2">
               Filter by City
             </label>
             <select
               value={filterCity}
               onChange={(e) => setFilterCity(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
             >
               <option value="">All Cities</option>
               {uniqueCities.map((city) => (
@@ -287,13 +287,13 @@ export default function Vets() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 mb-2">
               Filter by Specialization
             </label>
             <select
               value={filterSpecialization}
               onChange={(e) => setFilterSpecialization(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
             >
               <option value="">All Specializations</option>
               {uniqueSpecializations.map((spec) => (
@@ -308,19 +308,19 @@ export default function Vets() {
 
       {/* Vets List */}
       {filteredVets.length === 0 ? (
-        <div className="rounded-2xl bg-white/90 p-12 text-center shadow-md ring-1 ring-slate-100">
+        <div className="rounded-2xl bg-white/90 dark:bg-slate-900/90 p-12 text-center shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
           <Stethoscope className="mx-auto h-12 w-12 text-slate-400" />
-          <p className="mt-4 text-slate-600">No veterinarians found matching your criteria.</p>
+          <p className="mt-4 text-slate-600 dark:text-slate-300">No veterinarians found matching your criteria.</p>
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredVets.map((vet) => (
             <div
               key={vet.id}
-              className="overflow-hidden rounded-2xl bg-white/90 shadow-md ring-1 ring-slate-100 transition hover:shadow-lg flex flex-col"
+              className="overflow-hidden rounded-2xl bg-white/90 dark:bg-slate-900/90 shadow-md ring-1 ring-slate-100 dark:ring-slate-800 transition hover:shadow-lg flex flex-col"
             >
               {/* Clinic Image Cover */}
-              <div className="h-48 w-full bg-slate-100 relative">
+              <div className="h-48 w-full bg-slate-100 dark:bg-slate-800 relative">
                 {vet.clinic_image_url ? (
                   <img src={vet.clinic_image_url} alt={vet.clinic_name} className="h-full w-full object-cover" />
                 ) : (
@@ -330,7 +330,7 @@ export default function Vets() {
                 )}
                 {/* Consultation Fee Badge */}
                 {vet.consultation_fee && (
-                  <div className="absolute bottom-3 right-3 rounded-full bg-white/90 backdrop-blur-md px-3 py-1 text-sm font-bold text-dark shadow-sm ring-1 ring-slate-900/5">
+                  <div className="absolute bottom-3 right-3 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1 text-sm font-bold text-dark dark:text-white shadow-sm ring-1 ring-slate-900/5">
                     <span className="flex items-center">
                       <IndianRupee className="h-3.5 w-3.5 mr-0.5" />{vet.consultation_fee}
                     </span>
@@ -341,9 +341,9 @@ export default function Vets() {
               <div className="p-6 flex-1 flex flex-col">
                 <div className="mb-4 flex items-start justify-between">
                   <div>
-                    <h3 className="font-semibold text-dark line-clamp-1">{vet.clinic_name}</h3>
+                    <h3 className="font-semibold text-dark dark:text-white line-clamp-1">{vet.clinic_name}</h3>
                     {vet.profiles && (
-                      <p className="mt-1 text-sm text-slate-600">Dr. {vet.profiles.name}</p>
+                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Dr. {vet.profiles.name}</p>
                     )}
                   </div>
                   <Stethoscope className="h-6 w-6 text-primary shrink-0 ml-2" />
@@ -353,16 +353,16 @@ export default function Vets() {
                   <div className="flex items-start gap-2">
                     <Award className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                     <div>
-                      <p className="text-sm font-medium text-slate-700">{vet.specialization}</p>
-                      <p className="text-xs text-slate-500">{vet.qualifications}</p>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{vet.specialization}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{vet.qualifications}</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-2">
                     <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
                     <div>
-                      <p className="text-sm text-slate-700">{vet.location}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-sm text-slate-700 dark:text-slate-200">{vet.location}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {vet.city}, {vet.state}
                       </p>
                     </div>
@@ -376,13 +376,13 @@ export default function Vets() {
                   </div>
 
                   {vet.experience_years > 0 && (
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {vet.experience_years} {vet.experience_years === 1 ? 'year' : 'years'} of experience
                     </p>
                   )}
 
                   {vet.bio && (
-                    <p className="line-clamp-2 text-xs text-slate-600">{vet.bio}</p>
+                    <p className="line-clamp-2 text-xs text-slate-600 dark:text-slate-300">{vet.bio}</p>
                   )}
                 </div>
 
@@ -409,18 +409,18 @@ export default function Vets() {
       {/* Booking Modal */}
       {bookingVet && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-dark/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md animate-in zoom-in-95 rounded-3xl bg-white p-6 shadow-2xl md:p-8">
+          <div className="w-full max-w-md animate-in zoom-in-95 rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-2xl md:p-8">
             <div className="mb-6 flex items-start justify-between">
               <div>
-                <h2 className="font-display text-xl font-semibold text-dark">Book Appointment</h2>
-                <p className="mt-1 text-sm text-slate-500">with {bookingVet.clinic_name}</p>
+                <h2 className="font-display text-xl font-semibold text-dark dark:text-white">Book Appointment</h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">with {bookingVet.clinic_name}</p>
               </div>
               <button
                 onClick={() => {
                   setBookingVet(null);
                   setBookingSuccess(false);
                 }}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 dark:bg-slate-800 hover:text-slate-600 dark:text-slate-300"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -431,28 +431,28 @@ export default function Vets() {
                 <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
                   <Award className="h-8 w-8" />
                 </div>
-                <h3 className="text-lg font-semibold text-dark">Request Sent!</h3>
-                <p className="mt-2 text-sm text-slate-600">Your appointment request for {petName} has been sent to the clinic. You can track this in your profile.</p>
+                <h3 className="text-lg font-semibold text-dark dark:text-white">Request Sent!</h3>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Your appointment request for {petName} has been sent to the clinic. You can track this in your profile.</p>
               </div>
             ) : (
               <form onSubmit={handleBookAppointment} className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">Pet Name</label>
-                  <input required value={petName} onChange={e => setPetName(e.target.value)} type="text" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Max" />
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Pet Name</label>
+                  <input required value={petName} onChange={e => setPetName(e.target.value)} type="text" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Max" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">Date</label>
-                    <input required value={bookingDate} onChange={e => setBookingDate(e.target.value)} type="date" min={new Date().toISOString().split('T')[0]} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Date</label>
+                    <input required value={bookingDate} onChange={e => setBookingDate(e.target.value)} type="date" min={new Date().toISOString().split('T')[0]} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">Time</label>
-                    <input required value={bookingTime} onChange={e => setBookingTime(e.target.value)} type="time" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Time</label>
+                    <input required value={bookingTime} onChange={e => setBookingTime(e.target.value)} type="time" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">Reason for visit</label>
-                  <textarea required value={reason} onChange={e => setReason(e.target.value)} rows={3} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Annual checkup, vaccinations..."></textarea>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Reason for visit</label>
+                  <textarea required value={reason} onChange={e => setReason(e.target.value)} rows={3} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Annual checkup, vaccinations..."></textarea>
                 </div>
                 <div className="pt-2">
                   <button disabled={isBooking} type="submit" className="w-full rounded-full bg-primary py-3 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:opacity-70">

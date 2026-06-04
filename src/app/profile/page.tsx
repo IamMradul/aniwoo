@@ -264,9 +264,9 @@ export default function Profile() {
   if (checkingSession) {
     return (
       <main className="mx-auto flex min-h-[70vh] max-w-6xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-white/90 p-8 text-center shadow-md ring-1 ring-slate-100">
+        <div className="rounded-2xl bg-white/90 dark:bg-slate-900/90 p-8 text-center shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-          <p className="text-slate-600">Loading your profile...</p>
+          <p className="text-slate-600 dark:text-slate-300">Loading your profile...</p>
         </div>
       </main>
     );
@@ -275,9 +275,9 @@ export default function Profile() {
   if (!isAuthenticated) {
     return (
       <main className="mx-auto flex min-h-[70vh] max-w-6xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <div className="rounded-2xl bg-white/90 p-8 text-center shadow-md ring-1 ring-slate-100">
-          <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">You&apos;re not logged in</h1>
-          <p className="mt-3 text-sm text-slate-600">
+        <div className="rounded-2xl bg-white/90 dark:bg-slate-900/90 p-8 text-center shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
+          <h1 className="font-display text-2xl font-semibold text-dark dark:text-white sm:text-3xl">You&apos;re not logged in</h1>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
             Log in or create an Aniwoo account to view your profile and pet details.
           </p>
           <div className="mt-5 flex justify-center gap-3">
@@ -289,7 +289,7 @@ export default function Profile() {
             </Link>
             <Link
               href="/signup"
-              className="rounded-full border border-slate-300 px-6 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary"
+              className="rounded-full border border-slate-300 dark:border-slate-700 px-6 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:border-primary hover:text-primary"
             >
               Sign up
             </Link>
@@ -301,15 +301,15 @@ export default function Profile() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <section className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm sm:p-8">
+      <section className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Profile Center</h1>
-            <p className="mt-2 text-sm text-slate-600 sm:text-base">
+            <h1 className="font-display text-2xl font-semibold text-dark dark:text-white sm:text-3xl">Profile Center</h1>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 sm:text-base">
               Manage your account details, security, and your Aniwoo profile tools in one place.
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-sm text-slate-700 dark:text-slate-200">
             <p><span className="font-semibold">Signed in as:</span> {user?.email}</p>
             <p className="mt-1"><span className="font-semibold">Role:</span> {user?.role || 'pet_owner'}</p>
           </div>
@@ -319,21 +319,21 @@ export default function Profile() {
           <button
             type="button"
             onClick={() => setActiveTab('dashboard')}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeTab === 'dashboard' ? 'bg-primary text-white' : 'border border-slate-300 text-slate-700 hover:border-primary hover:text-primary'}`}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeTab === 'dashboard' ? 'bg-primary text-white' : 'border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary'}`}
           >
             Dashboard
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('account')}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeTab === 'account' ? 'bg-primary text-white' : 'border border-slate-300 text-slate-700 hover:border-primary hover:text-primary'}`}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeTab === 'account' ? 'bg-primary text-white' : 'border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary'}`}
           >
             Account
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('security')}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeTab === 'security' ? 'bg-primary text-white' : 'border border-slate-300 text-slate-700 hover:border-primary hover:text-primary'}`}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${activeTab === 'security' ? 'bg-primary text-white' : 'border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary'}`}
           >
             Security
           </button>
@@ -343,9 +343,9 @@ export default function Profile() {
       {activeTab === 'dashboard' && (
         <section className="mt-8">
           {user?.role === 'admin' ? (
-            <section className="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-sm">
-              <h2 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Admin account</h2>
-              <p className="mt-3 text-sm text-slate-600 sm:text-base">
+            <section className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 p-8 shadow-sm">
+              <h2 className="font-display text-2xl font-semibold text-dark dark:text-white sm:text-3xl">Admin account</h2>
+              <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 sm:text-base">
                 You are signed in as an administrator. Open the admin portal to manage users, products, and platform operations.
               </p>
               <Link
@@ -364,13 +364,13 @@ export default function Profile() {
       )}
 
       {activeTab === 'account' && (
-        <section className="mt-8 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm sm:p-8">
-          <h2 className="font-display text-xl font-semibold text-dark sm:text-2xl">Account Details</h2>
-          <p className="mt-2 text-sm text-slate-600">Update your display name used across Aniwoo.</p>
+        <section className="mt-8 rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 p-6 shadow-sm sm:p-8">
+          <h2 className="font-display text-xl font-semibold text-dark dark:text-white sm:text-2xl">Account Details</h2>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Update your display name used across Aniwoo.</p>
 
           <form onSubmit={handleNameUpdate} className="mt-6 max-w-xl space-y-4">
             <div>
-              <label htmlFor="displayName" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <label htmlFor="displayName" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                 Full name
               </label>
               <input
@@ -378,7 +378,7 @@ export default function Profile() {
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="Enter your name"
               />
             </div>
@@ -399,13 +399,13 @@ export default function Profile() {
 
       {activeTab === 'security' && (
         <section className="mt-8 grid gap-6 lg:grid-cols-2">
-          <article className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm sm:p-8">
-            <h2 className="font-display text-xl font-semibold text-dark sm:text-2xl">Change Password</h2>
-            <p className="mt-2 text-sm text-slate-600">Set a new strong password for your account.</p>
+          <article className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 p-6 shadow-sm sm:p-8">
+            <h2 className="font-display text-xl font-semibold text-dark dark:text-white sm:text-2xl">Change Password</h2>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Set a new strong password for your account.</p>
 
             <form onSubmit={handlePasswordUpdate} className="mt-6 space-y-4">
               <div>
-                <label htmlFor="newPassword" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                <label htmlFor="newPassword" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                   New password
                 </label>
                 <input
@@ -413,13 +413,13 @@ export default function Profile() {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                   placeholder="At least 6 characters"
                 />
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                <label htmlFor="confirmPassword" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                   Confirm new password
                 </label>
                 <input
@@ -427,7 +427,7 @@ export default function Profile() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                   placeholder="Repeat new password"
                 />
               </div>
@@ -445,9 +445,9 @@ export default function Profile() {
             </form>
           </article>
 
-          <article className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm sm:p-8">
-            <h2 className="font-display text-xl font-semibold text-dark sm:text-2xl">Forgot Password</h2>
-            <p className="mt-2 text-sm text-slate-600">
+          <article className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 p-6 shadow-sm sm:p-8">
+            <h2 className="font-display text-xl font-semibold text-dark dark:text-white sm:text-2xl">Forgot Password</h2>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
               Send a recovery link to <span className="font-semibold">{user?.email}</span> in case you lose access.
             </p>
 
@@ -459,22 +459,22 @@ export default function Profile() {
                 type="button"
                 onClick={handleSendPasswordReset}
                 disabled={resetEmailLoading}
-                className="rounded-full border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:bg-slate-100"
+                className="rounded-full border border-slate-300 dark:border-slate-700 px-6 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:bg-slate-100 dark:bg-slate-800"
               >
                 {resetEmailLoading ? 'Sending...' : 'Send Reset Email'}
               </button>
             </div>
 
-            <div className="mt-8 border-t border-slate-200 pt-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600">Session</h3>
-              <p className="mt-2 text-sm text-slate-600">Use secure logout when switching devices or shared systems.</p>
+            <div className="mt-8 border-t border-slate-200 dark:border-slate-700 pt-6">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Session</h3>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Use secure logout when switching devices or shared systems.</p>
               <button
                 type="button"
                 onClick={async () => {
                   await logout();
                   window.location.href = '/';
                 }}
-                className="mt-4 rounded-full border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-red-500 hover:bg-red-50 hover:text-red-600"
+                className="mt-4 rounded-full border border-slate-300 dark:border-slate-700 px-6 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:border-red-500 hover:bg-red-50 hover:text-red-600"
               >
                 Log out securely
               </button>

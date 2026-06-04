@@ -160,7 +160,7 @@ export default function AiHealthCheck() {
   );
 
   return (
-    <div className="bg-light pb-16">
+    <div className="bg-light dark:bg-[#0A0F1A] pb-16">
       <section className="bg-gradient-to-b from-dark via-dark to-slate-900 py-16 text-white">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
@@ -215,10 +215,10 @@ export default function AiHealthCheck() {
 
       <FadeInSection className="mt-[-40px]">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 rounded-3xl bg-white p-5 shadow-xl ring-1 ring-slate-100 md:grid-cols-[1.1fr,1fr] md:p-7 lg:p-8">
+          <div className="grid gap-8 rounded-3xl bg-white dark:bg-slate-900 p-5 shadow-xl ring-1 ring-slate-100 dark:ring-slate-800 md:grid-cols-[1.1fr,1fr] md:p-7 lg:p-8">
             <div>
-              <h2 className="text-base font-semibold text-dark sm:text-lg">Upload your pet&apos;s photo</h2>
-              <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+              <h2 className="text-base font-semibold text-dark dark:text-white sm:text-lg">Upload your pet&apos;s photo</h2>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
                 Accepted formats: JPG, PNG • Max size: 10MB • For best results, use natural lighting and a clear view of
                 your pet&apos;s face and body.
               </p>
@@ -228,7 +228,7 @@ export default function AiHealthCheck() {
                 className={`mt-4 flex min-h-[220px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 text-center transition ${
                   isDragging
                     ? 'border-primary bg-primary/5'
-                    : 'border-slate-200 hover:border-primary/70 hover:bg-slate-50/80'
+                    : 'border-slate-200 dark:border-slate-700 hover:border-primary/70 hover:bg-slate-50/80'
                 }`}
                 onDragOver={(event) => {
                   event.preventDefault();
@@ -254,18 +254,18 @@ export default function AiHealthCheck() {
                     <Image className="h-6 w-6" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-dark">
+                    <p className="text-sm font-semibold text-dark dark:text-white">
                       Drop your pet&apos;s photo here or{' '}
                       <span className="text-primary underline underline-offset-2">click to browse</span>
                     </p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                       Make sure your pet is clearly visible and centered in the frame.
                     </p>
                   </div>
                   {file && (
-                    <p className="mt-1 text-xs text-slate-600">
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                       Selected file:{' '}
-                      <span className="font-medium text-dark">
+                      <span className="font-medium text-dark dark:text-white">
                         {file.name} ({Math.round(file.size / 1024)} KB)
                       </span>
                     </p>
@@ -289,17 +289,17 @@ export default function AiHealthCheck() {
                     'Analyze Now'
                   )}
                 </button>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
                   Analysis takes around 3 seconds. No images are stored in this demo experience.
                 </p>
               </div>
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-base font-semibold text-dark sm:text-lg">Analysis results</h2>
+              <h2 className="text-base font-semibold text-dark dark:text-white sm:text-lg">Analysis results</h2>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl bg-slate-50 ring-1 ring-slate-100">
+                <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-100 dark:ring-slate-800">
                   {previewUrl ? (
                     <img
                       src={previewUrl}
@@ -308,14 +308,14 @@ export default function AiHealthCheck() {
                       loading="lazy"
                     />
                   ) : (
-                    <div className="flex flex-col items-center text-center text-xs text-slate-500">
+                    <div className="flex flex-col items-center text-center text-xs text-slate-500 dark:text-slate-400">
                       <Image className="mb-2 h-6 w-6 text-slate-400" aria-hidden="true" />
                       <span>Preview of your pet&apos;s photo will appear here after upload.</span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col justify-between rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+                <div className="flex flex-col justify-between rounded-2xl bg-slate-50 dark:bg-slate-800 p-4 ring-1 ring-slate-100 dark:ring-slate-800">
                   {result && currentStatusConfig ? (
                     <>
                       <div
@@ -332,15 +332,15 @@ export default function AiHealthCheck() {
                           </span>
                         </div>
                         <p className="mt-2">{currentStatusConfig.description}</p>
-                        <p className="mt-2 text-[11px] text-slate-600">
+                        <p className="mt-2 text-[11px] text-slate-600 dark:text-slate-300">
                           Confidence:{' '}
-                          <span className="font-semibold text-dark">{result.confidence}%</span>
+                          <span className="font-semibold text-dark dark:text-white">{result.confidence}%</span>
                         </p>
                       </div>
 
-                      <div className="mt-3 space-y-2 text-xs text-slate-700">
+                      <div className="mt-3 space-y-2 text-xs text-slate-700 dark:text-slate-200">
                         <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                             Detected Concerns
                           </p>
                           <ul className="mt-1 space-y-1">
@@ -353,7 +353,7 @@ export default function AiHealthCheck() {
                           </ul>
                         </div>
                         <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                             Recommended Next Steps
                           </p>
                           <ul className="mt-1 space-y-1">
@@ -368,7 +368,7 @@ export default function AiHealthCheck() {
                       </div>
                     </>
                   ) : (
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       Run an analysis to see your pet&apos;s health summary, potential concerns, and recommended next
                       steps.
                     </p>
@@ -379,7 +379,7 @@ export default function AiHealthCheck() {
                       type="button"
                       onClick={handleDownloadReport}
                       disabled={!result}
-                      className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
+                      className="inline-flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:border-slate-200 dark:border-slate-700 disabled:text-slate-400"
                     >
                       <Download className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
                       Download Report
@@ -396,7 +396,7 @@ export default function AiHealthCheck() {
               </div>
 
               <motion.p
-                className="mt-2 text-[11px] leading-relaxed text-slate-500"
+                className="mt-2 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true, amount: 0.4 }}

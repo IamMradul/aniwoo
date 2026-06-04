@@ -267,9 +267,9 @@ export default function AdminPortalPage() {
   if (!isAuthenticated) {
     return (
       <main className="mx-auto flex min-h-[70vh] max-w-6xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <section className="rounded-2xl bg-white/90 p-8 text-center shadow-md ring-1 ring-slate-100">
-          <h1 className="font-display text-2xl font-semibold text-dark">Admin login required</h1>
-          <p className="mt-3 text-sm text-slate-600">Please sign in with an admin account to access the portal.</p>
+        <section className="rounded-2xl bg-white/90 dark:bg-slate-900/90 p-8 text-center shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
+          <h1 className="font-display text-2xl font-semibold text-dark dark:text-white">Admin login required</h1>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">Please sign in with an admin account to access the portal.</p>
           <Link href="/login" className="mt-5 inline-flex rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white">
             Go to Login
           </Link>
@@ -281,10 +281,10 @@ export default function AdminPortalPage() {
   if (!isAdmin) {
     return (
       <main className="mx-auto flex min-h-[70vh] max-w-6xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <section className="rounded-2xl bg-white/90 p-8 text-center shadow-md ring-1 ring-slate-100">
-          <h1 className="font-display text-2xl font-semibold text-dark">Access denied</h1>
-          <p className="mt-3 text-sm text-slate-600">This area is reserved for admin users only.</p>
-          <Link href="/profile" className="mt-5 inline-flex rounded-full border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700">
+        <section className="rounded-2xl bg-white/90 dark:bg-slate-900/90 p-8 text-center shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
+          <h1 className="font-display text-2xl font-semibold text-dark dark:text-white">Access denied</h1>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">This area is reserved for admin users only.</p>
+          <Link href="/profile" className="mt-5 inline-flex rounded-full border border-slate-300 dark:border-slate-700 px-6 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
             Back to Profile
           </Link>
         </section>
@@ -294,28 +294,28 @@ export default function AdminPortalPage() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <section className="rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100 sm:p-8">
-        <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Aniwoo Admin Portal</h1>
-        <p className="mt-2 text-sm text-slate-600 sm:text-base">
+      <section className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800 sm:p-8">
+        <h1 className="font-display text-2xl font-semibold text-dark dark:text-white sm:text-3xl">Aniwoo Admin Portal</h1>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 sm:text-base">
           Manage users, publish shop products, and operate core platform workflows from one place.
         </p>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Total users</p>
-            <p className="mt-1 text-2xl font-semibold text-dark">{users.length}</p>
+          <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total users</p>
+            <p className="mt-1 text-2xl font-semibold text-dark dark:text-white">{users.length}</p>
           </article>
-          <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Admins</p>
-            <p className="mt-1 text-2xl font-semibold text-dark">{roleStats.admin}</p>
+          <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Admins</p>
+            <p className="mt-1 text-2xl font-semibold text-dark dark:text-white">{roleStats.admin}</p>
           </article>
-          <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Veterinarians</p>
-            <p className="mt-1 text-2xl font-semibold text-dark">{roleStats.vet}</p>
+          <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Veterinarians</p>
+            <p className="mt-1 text-2xl font-semibold text-dark dark:text-white">{roleStats.vet}</p>
           </article>
-          <article className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Pet owners</p>
-            <p className="mt-1 text-2xl font-semibold text-dark">{roleStats.petOwner}</p>
+          <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Pet owners</p>
+            <p className="mt-1 text-2xl font-semibold text-dark dark:text-white">{roleStats.petOwner}</p>
           </article>
         </div>
 
@@ -327,25 +327,25 @@ export default function AdminPortalPage() {
       </section>
 
       <section className="mt-8 grid gap-8 lg:grid-cols-[1fr,1.15fr]">
-        <article className="rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100">
-          <h2 className="font-display text-xl font-semibold text-dark">Create Product</h2>
-          <p className="mt-1 text-sm text-slate-600">Products added here appear automatically in the shop.</p>
+        <article className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
+          <h2 className="font-display text-xl font-semibold text-dark dark:text-white">Create Product</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Products added here appear automatically in the shop.</p>
 
           <form onSubmit={handleCreateProduct} className="mt-5 space-y-4">
             <div>
-              <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">Product name</label>
+              <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Product name</label>
               <input
                 id="name"
                 value={form.name}
                 onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="Healthy Puppy Kibble"
               />
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label htmlFor="price" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">Price (INR)</label>
+                <label htmlFor="price" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Price (INR)</label>
                 <input
                   id="price"
                   type="number"
@@ -353,33 +353,33 @@ export default function AdminPortalPage() {
                   step="0.01"
                   value={form.price}
                   onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                   placeholder="899"
                 />
               </div>
               <div>
-                <label htmlFor="category" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">Category</label>
+                <label htmlFor="category" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Category</label>
                 <input
                   id="category"
                   value={form.category}
                   onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                   placeholder="Food"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="productImages" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">Product photos</label>
+              <label htmlFor="productImages" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Product photos</label>
               <input
                 id="productImages"
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={handleImageUpload}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
               />
-              <p className="mt-1 text-xs text-slate-500">Upload one or more product images (max 10 files, 5MB each).</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Upload one or more product images (max 10 files, 5MB each).</p>
 
               {uploadingImages && (
                 <p className="mt-2 text-xs font-semibold text-primary">Uploading images...</p>
@@ -388,12 +388,12 @@ export default function AdminPortalPage() {
               {form.image_urls.length > 0 && (
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {form.image_urls.map((url) => (
-                    <div key={url} className="group relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                    <div key={url} className="group relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                       <img src={url} alt="Product preview" className="h-24 w-full object-cover" />
                       <button
                         type="button"
                         onClick={() => removeFormImage(url)}
-                        className="absolute right-1 top-1 rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-red-600 shadow"
+                        className="absolute right-1 top-1 rounded-full bg-white/95 dark:bg-slate-900/95 px-2 py-0.5 text-[11px] font-semibold text-red-600 shadow"
                       >
                         Remove
                       </button>
@@ -404,19 +404,19 @@ export default function AdminPortalPage() {
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">Description</label>
+              <label htmlFor="description" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Description</label>
               <textarea
                 id="description"
                 rows={3}
                 value={form.description}
                 onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="High-protein, vet-approved nutrition for growing puppies."
               />
             </div>
 
             <div className="flex flex-wrap items-center gap-4">
-              <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+              <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
                 <input
                   type="checkbox"
                   checked={form.in_stock}
@@ -424,7 +424,7 @@ export default function AdminPortalPage() {
                 />
                 In stock
               </label>
-              <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+              <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
                 <input
                   type="checkbox"
                   checked={form.is_active}
@@ -444,22 +444,22 @@ export default function AdminPortalPage() {
           </form>
         </article>
 
-        <article className="rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100">
-          <h2 className="font-display text-xl font-semibold text-dark">Products</h2>
-          <p className="mt-1 text-sm text-slate-600">Toggle availability or remove outdated items.</p>
+        <article className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
+          <h2 className="font-display text-xl font-semibold text-dark dark:text-white">Products</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Toggle availability or remove outdated items.</p>
 
           {productsLoading ? (
-            <p className="mt-5 text-sm text-slate-500">Loading products...</p>
+            <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">Loading products...</p>
           ) : products.length === 0 ? (
-            <p className="mt-5 text-sm text-slate-500">No products yet. Add your first product using the form.</p>
+            <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">No products yet. Add your first product using the form.</p>
           ) : (
             <ul className="mt-5 space-y-3">
               {products.map((product) => (
-                <li key={product.id} className="rounded-2xl border border-slate-200 p-4">
+                <li key={product.id} className="rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-base font-semibold text-dark">{product.name}</h3>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <h3 className="text-base font-semibold text-dark dark:text-white">{product.name}</h3>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         {product.category || 'General'} | INR {Number(product.price || 0).toFixed(2)}
                       </p>
                       {product.image_urls.length > 0 && (
@@ -469,30 +469,30 @@ export default function AdminPortalPage() {
                               key={url}
                               src={url}
                               alt={`${product.name} thumbnail`}
-                              className="h-12 w-12 rounded-lg border border-slate-200 object-cover"
+                              className="h-12 w-12 rounded-lg border border-slate-200 dark:border-slate-700 object-cover"
                             />
                           ))}
                           {product.image_urls.length > 4 && (
-                            <span className="inline-flex h-12 items-center rounded-lg bg-slate-100 px-2 text-xs font-semibold text-slate-600">
+                            <span className="inline-flex h-12 items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
                               +{product.image_urls.length - 4}
                             </span>
                           )}
                         </div>
                       )}
-                      {product.description && <p className="mt-2 text-sm text-slate-600">{product.description}</p>}
+                      {product.description && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{product.description}</p>}
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={() => toggleProductStatus(product.id, 'in_stock', product.in_stock)}
-                        className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:border-primary hover:text-primary"
+                        className="rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary"
                       >
                         {product.in_stock ? 'Mark Out of Stock' : 'Mark In Stock'}
                       </button>
                       <button
                         type="button"
                         onClick={() => toggleProductStatus(product.id, 'is_active', product.is_active)}
-                        className="rounded-full border border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:border-primary hover:text-primary"
+                        className="rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary"
                       >
                         {product.is_active ? 'Hide from Shop' : 'Show in Shop'}
                       </button>
@@ -512,15 +512,15 @@ export default function AdminPortalPage() {
         </article>
       </section>
 
-      <section className="mt-8 rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100">
-        <h2 className="font-display text-xl font-semibold text-dark">Users</h2>
+      <section className="mt-8 rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
+        <h2 className="font-display text-xl font-semibold text-dark dark:text-white">Users</h2>
         {usersLoading ? (
-          <p className="mt-4 text-sm text-slate-500">Loading users...</p>
+          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Loading users...</p>
         ) : (
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
+                <tr className="border-b border-slate-200 dark:border-slate-700 text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   <th className="py-2 pr-3">Name</th>
                   <th className="py-2 pr-3">Email</th>
                   <th className="py-2 pr-3">Role</th>
@@ -529,15 +529,15 @@ export default function AdminPortalPage() {
               </thead>
               <tbody>
                 {users.map((entry) => (
-                  <tr key={entry.id} className="border-b border-slate-100">
-                    <td className="py-2 pr-3 font-medium text-dark">{entry.name || 'Unnamed user'}</td>
-                    <td className="py-2 pr-3 text-slate-700">{entry.email}</td>
+                  <tr key={entry.id} className="border-b border-slate-100 dark:border-slate-800">
+                    <td className="py-2 pr-3 font-medium text-dark dark:text-white">{entry.name || 'Unnamed user'}</td>
+                    <td className="py-2 pr-3 text-slate-700 dark:text-slate-200">{entry.email}</td>
                     <td className="py-2 pr-3">
-                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                      <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
                         {entry.role || 'unknown'}
                       </span>
                     </td>
-                    <td className="py-2 pr-3 text-slate-600">
+                    <td className="py-2 pr-3 text-slate-600 dark:text-slate-300">
                       {entry.created_at ? new Date(entry.created_at).toLocaleDateString() : '-'}
                     </td>
                   </tr>

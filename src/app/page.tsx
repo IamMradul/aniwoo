@@ -354,7 +354,7 @@ const AiHighlightSection = () => {
                     </span>
                   </div>
                   <div className="space-y-1.5">
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Instant insights</p>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Instant insights</p>
                     <ul className="space-y-1.5">
                       <li className="flex items-center gap-2">
                         <CheckCircle2 className="h-3.5 w-3.5 text-secondary" />
@@ -371,7 +371,7 @@ const AiHighlightSection = () => {
                     </ul>
                   </div>
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Confidence</p>
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Confidence</p>
                     <div className="mt-1.5 flex items-center justify-between">
                       <div className="h-2 flex-1 rounded-full bg-slate-800">
                         <div className="h-2 w-4/5 rounded-full bg-gradient-to-r from-secondary to-accent" />
@@ -529,7 +529,7 @@ const CtaBanner = () => {
           <Link
             href="/shop"
             data-animate="cta-button"
-            className="group inline-flex items-center justify-center rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-dark shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl"
+            className="group inline-flex items-center justify-center rounded-full bg-white dark:bg-slate-900 px-8 py-3.5 text-sm font-semibold text-dark dark:text-white shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl"
           >
             Get Started with Aniwoo
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

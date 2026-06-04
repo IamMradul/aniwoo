@@ -39,7 +39,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" type="image/svg+xml" href="/aniwoo-logo.svg" />
       </head>
-      <body className="bg-light text-dark font-sans antialiased">
+      <body className="font-sans antialiased">
         <AuthProvider>
           <Layout>
             {children}

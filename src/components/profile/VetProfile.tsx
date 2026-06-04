@@ -288,52 +288,52 @@ export function VetProfile({ user }: { user: any }) {
     const renderAppointments = () => (
         <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-dark">Recent Bookings</h2>
+                <h2 className="text-xl font-semibold text-dark dark:text-white">Recent Bookings</h2>
             </div>
 
             {loading ? (
                 <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
             ) : bookings.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
+                <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400">
                     <Calendar className="mx-auto mb-2 h-8 w-8 text-slate-400" />
                     <p>No appointments booked yet.</p>
                 </div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                     {bookings.map((booking) => (
-                        <div key={booking.id} className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 transition hover:shadow-md">
+                        <div key={booking.id} className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition hover:shadow-md">
                             <div className="absolute top-0 right-0 p-4">
                                 <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                                     booking.status === 'pending' ? 'bg-amber-100 text-amber-800' :
-                                        'bg-slate-100 text-slate-800'
+                                        'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
                                     }`}>
                                     {booking.status}
                                 </span>
                             </div>
 
                             <div className="mb-4">
-                                <h3 className="font-display text-lg font-semibold text-dark flex items-center gap-2">
+                                <h3 className="font-display text-lg font-semibold text-dark dark:text-white flex items-center gap-2">
                                     <PawPrint className="h-4 w-4 text-primary" /> {booking.pet_name}
                                 </h3>
-                                <p className="text-sm text-slate-500">Owner: {booking.owner_profile?.name || 'Unknown'}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Owner: {booking.owner_profile?.name || 'Unknown'}</p>
                             </div>
 
-                            <div className="flex flex-col gap-2 rounded-xl bg-slate-50 p-3 text-sm text-slate-600 text-xs">
+                            <div className="flex flex-col gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 p-3 text-sm text-slate-600 dark:text-slate-300 text-xs">
                                 <div className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> {new Date(booking.appointment_date).toLocaleDateString()}</div>
                                 <div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5" /> {new Date(booking.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                             </div>
 
                             {booking.reason && (
-                                <div className="mt-4 border-t border-slate-100 pt-4">
+                                <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
                                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Reason for visit</p>
-                                    <p className="mt-1 text-sm text-slate-700">{booking.reason}</p>
+                                    <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{booking.reason}</p>
                                 </div>
                             )}
 
                             {booking.status === 'pending' && (
                                 <div className="mt-4 flex gap-2">
                                     <button onClick={() => updateBookingStatus(booking.id, 'confirmed')} className="flex-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-primary/90">Confirm</button>
-                                    <button onClick={() => updateBookingStatus(booking.id, 'rescheduled')} className="flex-1 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">Reschedule</button>
+                                    <button onClick={() => updateBookingStatus(booking.id, 'rescheduled')} className="flex-1 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:bg-slate-800">Reschedule</button>
                                 </div>
                             )}
                         </div>
@@ -346,7 +346,7 @@ export function VetProfile({ user }: { user: any }) {
     const renderPatients = () => (
         <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-dark">My Patients</h2>
+                <h2 className="text-xl font-semibold text-dark dark:text-white">My Patients</h2>
                 <button className="flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80">
                     <UserPlus className="h-4 w-4" />
                     Add Patient Record
@@ -355,7 +355,7 @@ export function VetProfile({ user }: { user: any }) {
 
             <div className="grid gap-4 sm:grid-cols-2">
                 {/* Mock Patient 1 */}
-                <div className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md hover:ring-primary/20">
+                <div className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md hover:ring-primary/20">
                     <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 transition-transform group-hover:scale-150"></div>
                     <div className="relative z-10 flex items-start justify-between">
                         <div className="flex items-center gap-4">
@@ -363,20 +363,20 @@ export function VetProfile({ user }: { user: any }) {
                                 <PawPrint className="h-6 w-6" />
                             </div>
                             <div>
-                                <h3 className="font-display text-lg font-semibold text-dark">Max</h3>
-                                <p className="text-sm text-slate-500">German Shepherd • 5 Years</p>
+                                <h3 className="font-display text-lg font-semibold text-dark dark:text-white">Max</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">German Shepherd • 5 Years</p>
                             </div>
                         </div>
                     </div>
-                    <div className="relative z-10 mt-5 border-t border-slate-100 pt-4">
+                    <div className="relative z-10 mt-5 border-t border-slate-100 dark:border-slate-800 pt-4">
                         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Clinical Notes</p>
-                        <p className="mt-1 text-sm text-slate-700">Recovering from minor surgery. Checkup due next month.</p>
-                        <p className="mt-2 text-xs text-slate-500">Owner: John Doe</p>
+                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">Recovering from minor surgery. Checkup due next month.</p>
+                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Owner: John Doe</p>
                     </div>
                 </div>
 
                 {/* Mock Patient 2 */}
-                <div className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md hover:ring-primary/20">
+                <div className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md hover:ring-primary/20">
                     <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 transition-transform group-hover:scale-150"></div>
                     <div className="relative z-10 flex items-start justify-between">
                         <div className="flex items-center gap-4">
@@ -384,15 +384,15 @@ export function VetProfile({ user }: { user: any }) {
                                 <PawPrint className="h-6 w-6" />
                             </div>
                             <div>
-                                <h3 className="font-display text-lg font-semibold text-dark">Bella</h3>
-                                <p className="text-sm text-slate-500">Labrador Mix • 2 Years</p>
+                                <h3 className="font-display text-lg font-semibold text-dark dark:text-white">Bella</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">Labrador Mix • 2 Years</p>
                             </div>
                         </div>
                     </div>
-                    <div className="relative z-10 mt-5 border-t border-slate-100 pt-4">
+                    <div className="relative z-10 mt-5 border-t border-slate-100 dark:border-slate-800 pt-4">
                         <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Clinical Notes</p>
-                        <p className="mt-1 text-sm text-slate-700">Routine vaccinations completed. Needs dietary advice.</p>
-                        <p className="mt-2 text-xs text-slate-500">Owner: Sarah Smith</p>
+                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">Routine vaccinations completed. Needs dietary advice.</p>
+                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Owner: Sarah Smith</p>
                     </div>
                 </div>
             </div>
@@ -402,38 +402,38 @@ export function VetProfile({ user }: { user: any }) {
     const renderPartners = () => (
         <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-dark">Clinic Partners</h2>
+                <h2 className="text-xl font-semibold text-dark dark:text-white">Clinic Partners</h2>
             </div>
 
             <div className="grid gap-4">
                 {/* Mock Partner 1 */}
-                <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md">
+                <div className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                             <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-dark">Paws & Bubbles Grooming</h3>
-                            <p className="text-sm text-slate-500">Grooming Partner</p>
+                            <h3 className="font-semibold text-dark dark:text-white">Paws & Bubbles Grooming</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Grooming Partner</p>
                         </div>
                     </div>
-                    <button className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
+                    <button className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
                         <ChevronRight className="h-5 w-5" />
                     </button>
                 </div>
 
                 {/* Mock Partner 2 */}
-                <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md">
+                <div className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                             <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-dark">City Pet Pharmacy</h3>
-                            <p className="text-sm text-slate-500">Pharmacy Partner</p>
+                            <h3 className="font-semibold text-dark dark:text-white">City Pet Pharmacy</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Pharmacy Partner</p>
                         </div>
                     </div>
-                    <button className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
+                    <button className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
                         <ChevronRight className="h-5 w-5" />
                     </button>
                 </div>
@@ -444,11 +444,11 @@ export function VetProfile({ user }: { user: any }) {
     const renderReports = () => (
         <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-dark">Clinic Reports</h2>
+                <h2 className="text-xl font-semibold text-dark dark:text-white">Clinic Reports</h2>
                 <button className="text-sm font-semibold text-primary transition hover:text-primary/80">Generate Report</button>
             </div>
 
-            <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <div className="overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
                 <div className="divide-y divide-slate-100">
                     {/* Mock Report 1 */}
                     <div className="flex items-center justify-between p-4 transition-colors hover:bg-slate-50/50">
@@ -457,11 +457,11 @@ export function VetProfile({ user }: { user: any }) {
                                 <FileText className="h-5 w-5" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-dark">Monthly Revenue Summary</h3>
-                                <p className="text-xs text-slate-500">March 2026 • Financial</p>
+                                <h3 className="font-semibold text-dark dark:text-white">Monthly Revenue Summary</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">March 2026 • Financial</p>
                             </div>
                         </div>
-                        <button className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary">
+                        <button className="flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 transition hover:border-primary hover:text-primary">
                             <Download className="h-3.5 w-3.5" />
                             <span>PDF</span>
                         </button>
@@ -474,11 +474,11 @@ export function VetProfile({ user }: { user: any }) {
                                 <FileText className="h-5 w-5" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-dark">Patient Attendance Report</h3>
-                                <p className="text-xs text-slate-500">Q1 2026 • Analytics</p>
+                                <h3 className="font-semibold text-dark dark:text-white">Patient Attendance Report</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Q1 2026 • Analytics</p>
                             </div>
                         </div>
-                        <button className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary">
+                        <button className="flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 transition hover:border-primary hover:text-primary">
                             <Download className="h-3.5 w-3.5" />
                             <span>PDF</span>
                         </button>
@@ -502,22 +502,22 @@ export function VetProfile({ user }: { user: any }) {
             )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100 md:p-8">
-                    <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-dark">
+                <div className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800 md:p-8">
+                    <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-dark dark:text-white">
                         <Building2 className="h-5 w-5 text-primary" />
                         Clinic Information
                     </h2>
 
                     <div className="grid gap-6 md:grid-cols-2">
                         <div>
-                            <label htmlFor="clinic_name" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                            <label htmlFor="clinic_name" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                 Clinic Name *
                             </label>
                             <input
                                 id="clinic_name"
                                 type="text"
                                 {...register('clinic_name')}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                 placeholder="Your Clinic Name"
                                 disabled={saving}
                             />
@@ -527,14 +527,14 @@ export function VetProfile({ user }: { user: any }) {
                         </div>
 
                         <div>
-                            <label htmlFor="specialization" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                            <label htmlFor="specialization" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                 Specialization *
                             </label>
                             <input
                                 id="specialization"
                                 type="text"
                                 {...register('specialization')}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                 placeholder="e.g., Small Animals, Exotic Pets"
                                 disabled={saving}
                             />
@@ -544,14 +544,14 @@ export function VetProfile({ user }: { user: any }) {
                         </div>
 
                         <div>
-                            <label htmlFor="location" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                            <label htmlFor="location" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                 Address *
                             </label>
                             <input
                                 id="location"
                                 type="text"
                                 {...register('location')}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                 placeholder="Street address"
                                 disabled={saving}
                             />
@@ -562,14 +562,14 @@ export function VetProfile({ user }: { user: any }) {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="city" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                <label htmlFor="city" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                     City *
                                 </label>
                                 <input
                                     id="city"
                                     type="text"
                                     {...register('city')}
-                                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                    className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                     placeholder="City"
                                     disabled={saving}
                                 />
@@ -579,14 +579,14 @@ export function VetProfile({ user }: { user: any }) {
                             </div>
 
                             <div>
-                                <label htmlFor="state" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                <label htmlFor="state" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                     State *
                                 </label>
                                 <input
                                     id="state"
                                     type="text"
                                     {...register('state')}
-                                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                    className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                     placeholder="State"
                                     disabled={saving}
                                 />
@@ -597,14 +597,14 @@ export function VetProfile({ user }: { user: any }) {
                         </div>
 
                         <div>
-                            <label htmlFor="phone" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                            <label htmlFor="phone" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                 <Phone className="inline h-3 w-3" /> Phone Number *
                             </label>
                             <input
                                 id="phone"
                                 type="tel"
                                 {...register('phone')}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                 placeholder="+91 1234567890"
                                 disabled={saving}
                             />
@@ -614,7 +614,7 @@ export function VetProfile({ user }: { user: any }) {
                         </div>
 
                         <div>
-                            <label htmlFor="experience_years" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                            <label htmlFor="experience_years" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                 <Award className="inline h-3 w-3" /> Years of Experience *
                             </label>
                             <input
@@ -622,7 +622,7 @@ export function VetProfile({ user }: { user: any }) {
                                 type="number"
                                 min="0"
                                 {...register('experience_years')}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                 placeholder="5"
                                 disabled={saving}
                             />
@@ -632,24 +632,24 @@ export function VetProfile({ user }: { user: any }) {
                         </div>
 
                         <div className="md:col-span-2">
-                            <label htmlFor="clinic_image_url" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                            <label htmlFor="clinic_image_url" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                 <ImageIcon className="inline h-3 w-3" /> Clinic Image URL (Optional)
                             </label>
                             <input
                                 id="clinic_image_url"
                                 type="url"
                                 {...register('clinic_image_url')}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                 placeholder="https://example.com/my-clinic-image.jpg"
                                 disabled={saving}
                             />
-                            <p className="mt-1 text-xs text-slate-500">Provide a direct link to a beautiful image of your clinic to show pet owners.</p>
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Provide a direct link to a beautiful image of your clinic to show pet owners.</p>
                             {errors.clinic_image_url && (
                                 <p className="mt-1 text-xs text-red-600">{errors.clinic_image_url.message}</p>
                             )}
 
                             <div className="mt-4">
-                                <label htmlFor="clinic_images" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                <label htmlFor="clinic_images" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                     Upload Clinic Images
                                 </label>
                                 <input
@@ -658,10 +658,10 @@ export function VetProfile({ user }: { user: any }) {
                                     accept="image/*"
                                     multiple
                                     onChange={handleClinicImageUpload}
-                                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                    className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                     disabled={saving || uploadingClinicImages}
                                 />
-                                <p className="mt-1 text-xs text-slate-500">Upload one or more clinic photos (max 10 files, 5MB each).</p>
+                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Upload one or more clinic photos (max 10 files, 5MB each).</p>
 
                                 {uploadingClinicImages && (
                                     <p className="mt-2 text-xs font-semibold text-primary">Uploading clinic images...</p>
@@ -670,12 +670,12 @@ export function VetProfile({ user }: { user: any }) {
                                 {clinicImageUrls.length > 0 && (
                                     <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                                         {clinicImageUrls.map((url) => (
-                                            <div key={url} className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                                            <div key={url} className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                                                 <img src={url} alt="Clinic preview" className="h-24 w-full object-cover" />
                                                 <button
                                                     type="button"
                                                     onClick={() => removeClinicImage(url)}
-                                                    className="absolute right-1 top-1 rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-red-600 shadow"
+                                                    className="absolute right-1 top-1 rounded-full bg-white/95 dark:bg-slate-900/95 px-2 py-0.5 text-[11px] font-semibold text-red-600 shadow"
                                                 >
                                                     Remove
                                                 </button>
@@ -687,19 +687,19 @@ export function VetProfile({ user }: { user: any }) {
                         </div>
 
                         <div>
-                            <label htmlFor="consultation_fee" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                            <label htmlFor="consultation_fee" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                 <IndianRupee className="inline h-3 w-3" /> Consultation Fee *
                             </label>
                             <div className="relative mt-1">
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <span className="text-slate-500 sm:text-sm">₹</span>
+                                    <span className="text-slate-500 dark:text-slate-400 sm:text-sm">₹</span>
                                 </div>
                                 <input
                                     id="consultation_fee"
                                     type="number"
                                     min="0"
                                     {...register('consultation_fee')}
-                                    className="block w-full rounded-xl border border-slate-200 pl-7 pr-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                    className="block w-full rounded-xl border border-slate-200 dark:border-slate-700 pl-7 pr-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                     placeholder="500"
                                     disabled={saving}
                                 />
@@ -711,22 +711,22 @@ export function VetProfile({ user }: { user: any }) {
                     </div>
                 </div>
 
-                <div className="rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100 md:p-8">
-                    <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-dark">
+                <div className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800 md:p-8">
+                    <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-dark dark:text-white">
                         <Stethoscope className="h-5 w-5 text-primary" />
                         Professional Details
                     </h2>
 
                     <div className="space-y-6">
                         <div>
-                            <label htmlFor="qualifications" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                            <label htmlFor="qualifications" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                 Qualifications *
                             </label>
                             <textarea
                                 id="qualifications"
                                 {...register('qualifications')}
                                 rows={3}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                 placeholder="e.g., BVSc, MVSc, PhD in Veterinary Medicine"
                                 disabled={saving}
                             />
@@ -736,14 +736,14 @@ export function VetProfile({ user }: { user: any }) {
                         </div>
 
                         <div>
-                            <label htmlFor="bio" className="block text-xs font-semibold uppercase tracking-wide text-slate-600">
+                            <label htmlFor="bio" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
                                 Bio / About
                             </label>
                             <textarea
                                 id="bio"
                                 {...register('bio')}
                                 rows={4}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
+                                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2 disabled:opacity-50"
                                 placeholder="Tell pet owners about yourself and your practice..."
                                 disabled={saving}
                             />
@@ -787,7 +787,7 @@ export function VetProfile({ user }: { user: any }) {
             </div>
 
             {/* Profile Navigation Tabs */}
-            <div className="flex overflow-x-auto border-b border-slate-200 pb-px hide-scrollbar gap-6">
+            <div className="flex overflow-x-auto border-b border-slate-200 dark:border-slate-700 pb-px hide-scrollbar gap-6">
                 {[
                     { id: 'appointments', label: 'Appointments', icon: Calendar },
                     { id: 'patients', label: 'Patients', icon: PawPrint },
@@ -803,7 +803,7 @@ export function VetProfile({ user }: { user: any }) {
                             onClick={() => setActiveTab(tab.id as TabType)}
                             className={`flex items-center gap-2 whitespace-nowrap border-b-2 pb-3 text-sm font-semibold transition-all ${isActive
                                 ? 'border-primary text-primary'
-                                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                                : 'border-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:border-slate-700 hover:text-slate-700 dark:text-slate-200'
                                 }`}
                         >
                             <Icon className="h-4 w-4" />

@@ -90,7 +90,7 @@ export function PetOwnerProfile({ user }: { user: any }) {
   const renderAppointments = () => (
     <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-dark">Upcoming Appointments</h2>
+        <h2 className="text-xl font-semibold text-dark dark:text-white">Upcoming Appointments</h2>
         <Link
           href="/vets"
           className="flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80"
@@ -103,7 +103,7 @@ export function PetOwnerProfile({ user }: { user: any }) {
       {loading ? (
         <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
       ) : bookings.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
+        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400">
           <Calendar className="mx-auto mb-2 h-8 w-8 text-slate-400" />
           <p>No upcoming appointments found.</p>
           <Link href="/vets" className="mt-4 inline-block rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">Book Now</Link>
@@ -111,24 +111,24 @@ export function PetOwnerProfile({ user }: { user: any }) {
       ) : (
         <div className="space-y-4">
           {bookings.map((booking) => (
-            <div key={booking.id} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+            <div key={booking.id} className="rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-dark">Appointment for {booking.pet_name}</h3>
-                  <p className="text-sm text-slate-600">{booking.vets?.clinic_name} (Dr. {booking.vet_profile?.name || 'Vet'})</p>
+                  <h3 className="font-semibold text-dark dark:text-white">Appointment for {booking.pet_name}</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">{booking.vets?.clinic_name} (Dr. {booking.vet_profile?.name || 'Vet'})</p>
                 </div>
                 <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
                   booking.status === 'pending' ? 'bg-amber-100 text-amber-800' :
-                    'bg-slate-100 text-slate-800'
+                    'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100'
                   }`}>
                   {booking.status}
                 </span>
               </div>
-              <div className="mt-4 flex flex-col gap-2 text-sm text-slate-500 sm:flex-row sm:items-center sm:gap-6">
+              <div className="mt-4 flex flex-col gap-2 text-sm text-slate-500 dark:text-slate-400 sm:flex-row sm:items-center sm:gap-6">
                 <div className="flex items-center gap-1.5"><Calendar className="h-4 w-4" /> {new Date(booking.appointment_date).toLocaleDateString()}</div>
                 <div className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> {new Date(booking.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
               </div>
-              {booking.reason && <p className="mt-3 text-sm text-slate-600 border-t border-slate-100 pt-3 flex items-center gap-2"><MapPin className="h-4 w-4" />{booking.reason}</p>}
+              {booking.reason && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-slate-800 pt-3 flex items-center gap-2"><MapPin className="h-4 w-4" />{booking.reason}</p>}
             </div>
           ))}
         </div>
@@ -139,7 +139,7 @@ export function PetOwnerProfile({ user }: { user: any }) {
   const renderPets = () => (
     <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-dark">My Pets</h2>
+        <h2 className="text-xl font-semibold text-dark dark:text-white">My Pets</h2>
         {!showAddPet && (
           <button onClick={() => setShowAddPet(true)} className="flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80">
             <Plus className="h-4 w-4" />
@@ -149,32 +149,32 @@ export function PetOwnerProfile({ user }: { user: any }) {
       </div>
 
       {showAddPet && (
-        <form onSubmit={handleAddPet} className="mb-6 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-          <h3 className="mb-4 text-lg font-semibold text-dark">Add a New Pet</h3>
+        <form onSubmit={handleAddPet} className="mb-6 rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+          <h3 className="mb-4 text-lg font-semibold text-dark dark:text-white">Add a New Pet</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">Name *</label>
-              <input required type="text" value={newPet.name} onChange={e => setNewPet({ ...newPet, name: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Max" />
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Name *</label>
+              <input required type="text" value={newPet.name} onChange={e => setNewPet({ ...newPet, name: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Max" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">Species *</label>
-              <input required type="text" value={newPet.species} onChange={e => setNewPet({ ...newPet, species: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Dog, Cat" />
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Species *</label>
+              <input required type="text" value={newPet.species} onChange={e => setNewPet({ ...newPet, species: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Dog, Cat" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">Breed</label>
-              <input type="text" value={newPet.breed} onChange={e => setNewPet({ ...newPet, breed: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Golden Retriever" />
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Breed</label>
+              <input type="text" value={newPet.breed} onChange={e => setNewPet({ ...newPet, breed: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Golden Retriever" />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">Age (Years)</label>
-              <input type="number" min="0" value={newPet.age_years} onChange={e => setNewPet({ ...newPet, age_years: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="3" />
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Age (Years)</label>
+              <input type="number" min="0" value={newPet.age_years} onChange={e => setNewPet({ ...newPet, age_years: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="3" />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600">Health Notes / Needs</label>
-              <textarea rows={2} value={newPet.health_notes} onChange={e => setNewPet({ ...newPet, health_notes: e.target.value })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="Vaccinated, allergies, etc."></textarea>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Health Notes / Needs</label>
+              <textarea rows={2} value={newPet.health_notes} onChange={e => setNewPet({ ...newPet, health_notes: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="Vaccinated, allergies, etc."></textarea>
             </div>
           </div>
           <div className="mt-4 flex justify-end gap-3">
-            <button type="button" onClick={() => setShowAddPet(false)} className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400">Cancel</button>
+            <button type="button" onClick={() => setShowAddPet(false)} className="rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:border-slate-400">Cancel</button>
             <button type="submit" disabled={isAddingPet} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:opacity-70">
               {isAddingPet ? 'Adding...' : 'Save Pet'}
             </button>
@@ -187,13 +187,13 @@ export function PetOwnerProfile({ user }: { user: any }) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {pets.length === 0 && !showAddPet ? (
-            <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
+            <div className="col-span-full rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400">
               <PawPrint className="mx-auto mb-2 h-8 w-8 text-slate-400" />
               <p>You haven't added any pets yet.</p>
             </div>
           ) : (
             pets.map((pet) => (
-              <div key={pet.id} className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md hover:ring-primary/20">
+              <div key={pet.id} className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md hover:ring-primary/20">
                 <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 transition-transform group-hover:scale-150"></div>
                 <div className="relative z-10 flex items-start justify-between">
                   <div className="flex items-center gap-4">
@@ -201,15 +201,15 @@ export function PetOwnerProfile({ user }: { user: any }) {
                       <PawPrint className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="font-display text-lg font-semibold text-dark">{pet.name}</h3>
-                      <p className="text-sm text-slate-500">{pet.breed || pet.species} {pet.age_years ? `• ${pet.age_years} Years` : ''}</p>
+                      <h3 className="font-display text-lg font-semibold text-dark dark:text-white">{pet.name}</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">{pet.breed || pet.species} {pet.age_years ? `• ${pet.age_years} Years` : ''}</p>
                     </div>
                   </div>
                 </div>
                 {pet.health_notes && (
-                  <div className="relative z-10 mt-5 border-t border-slate-100 pt-4">
+                  <div className="relative z-10 mt-5 border-t border-slate-100 dark:border-slate-800 pt-4">
                     <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Health Notes</p>
-                    <p className="mt-1 text-sm text-slate-700">{pet.health_notes}</p>
+                    <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{pet.health_notes}</p>
                   </div>
                 )}
               </div>
@@ -217,8 +217,8 @@ export function PetOwnerProfile({ user }: { user: any }) {
           )}
 
           {!showAddPet && (
-            <button onClick={() => setShowAddPet(true)} className="flex min-h-[160px] flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6 text-slate-400 transition-all hover:border-primary/50 hover:bg-primary/5 hover:text-primary">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-slate-100">
+            <button onClick={() => setShowAddPet(true)} className="flex min-h-[160px] flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 p-6 text-slate-400 transition-all hover:border-primary/50 hover:bg-primary/5 hover:text-primary">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-100 dark:ring-slate-800">
                 <Plus className="h-6 w-6" />
               </div>
               <span className="font-semibold">{pets.length === 0 ? 'Add Your First Pet' : 'Add Another Pet'}</span>
@@ -232,38 +232,38 @@ export function PetOwnerProfile({ user }: { user: any }) {
   const renderProviders = () => (
     <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-dark">Saved Providers</h2>
+        <h2 className="text-xl font-semibold text-dark dark:text-white">Saved Providers</h2>
       </div>
 
       <div className="grid gap-4">
         {/* Mock Provider 1 */}
-        <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md">
+        <div className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
             </div>
             <div>
-              <h3 className="font-semibold text-dark">Dr. Sarah Jenkins</h3>
-              <p className="text-sm text-slate-500">Veterinarian • City Vet Clinic</p>
+              <h3 className="font-semibold text-dark dark:text-white">Dr. Sarah Jenkins</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Veterinarian • City Vet Clinic</p>
             </div>
           </div>
-          <Link href="/vets" className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
+          <Link href="/vets" className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
             <ChevronRight className="h-5 w-5" />
           </Link>
         </div>
 
         {/* Mock Provider 2 */}
-        <div className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md">
+        <div className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
             </div>
             <div>
-              <h3 className="font-semibold text-dark">Paws & Bubbles Grooming</h3>
-              <p className="text-sm text-slate-500">Groomer • Downtown</p>
+              <h3 className="font-semibold text-dark dark:text-white">Paws & Bubbles Grooming</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Groomer • Downtown</p>
             </div>
           </div>
-          <button className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
+          <button className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
@@ -274,16 +274,16 @@ export function PetOwnerProfile({ user }: { user: any }) {
   const renderReports = () => (
     <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-dark">Health Reports</h2>
+        <h2 className="text-xl font-semibold text-dark dark:text-white">Health Reports</h2>
         <Link href="/ai-health-check" className="text-sm font-semibold text-primary transition hover:text-primary/80">New Scan</Link>
       </div>
 
-      <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+      <div className="overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
         <div className="divide-y divide-slate-100">
           {loading ? (
             <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
           ) : healthScans.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">
+            <div className="p-8 text-center text-slate-500 dark:text-slate-400">
               <FileText className="mx-auto mb-2 h-8 w-8 text-slate-400" />
               <p>No health reports found.</p>
             </div>
@@ -295,12 +295,12 @@ export function PetOwnerProfile({ user }: { user: any }) {
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-dark">{scan.pets?.name || 'Pet'} - {scan.scan_type}</h3>
-                    <p className="text-xs text-slate-500">{new Date(scan.created_at).toLocaleDateString()} • AI Generated</p>
+                    <h3 className="font-semibold text-dark dark:text-white">{scan.pets?.name || 'Pet'} - {scan.scan_type}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{new Date(scan.created_at).toLocaleDateString()} • AI Generated</p>
                   </div>
                 </div>
                 {scan.report_url ? (
-                  <a href={scan.report_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-primary hover:text-primary">
+                  <a href={scan.report_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 transition hover:border-primary hover:text-primary">
                     <Download className="h-3.5 w-3.5" />
                     <span>Report</span>
                   </a>
@@ -317,15 +317,15 @@ export function PetOwnerProfile({ user }: { user: any }) {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100 md:p-8">
-        <h1 className="font-display text-2xl font-semibold text-dark sm:text-3xl">Hi, {user?.name}</h1>
-        <p className="mt-2 text-sm text-slate-600 sm:text-base">
+      <section className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800 md:p-8">
+        <h1 className="font-display text-2xl font-semibold text-dark dark:text-white sm:text-3xl">Hi, {user?.name}</h1>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 sm:text-base">
           This is your Pet Parent dashboard. Manage your pet&apos;s appointments, AI health reports, and more.
         </p>
       </section>
 
       {/* Profile Navigation Tabs */}
-      <div className="flex overflow-x-auto border-b border-slate-200 pb-px hide-scrollbar gap-6">
+      <div className="flex overflow-x-auto border-b border-slate-200 dark:border-slate-700 pb-px hide-scrollbar gap-6">
         {[
           { id: 'appointments', label: 'Appointments', icon: Calendar },
           { id: 'pets', label: 'My Pets', icon: PawPrint },
@@ -340,7 +340,7 @@ export function PetOwnerProfile({ user }: { user: any }) {
               onClick={() => setActiveTab(tab.id as TabType)}
               className={`flex items-center gap-2 whitespace-nowrap border-b-2 pb-3 text-sm font-semibold transition-all ${isActive
                 ? 'border-primary text-primary'
-                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                : 'border-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:border-slate-700 hover:text-slate-700 dark:text-slate-200'
                 }`}
             >
               <Icon className="h-4 w-4" />
@@ -359,9 +359,9 @@ export function PetOwnerProfile({ user }: { user: any }) {
         </div>
 
         <aside className="space-y-6">
-          <div className="rounded-3xl bg-white/90 p-6 shadow-md ring-1 ring-slate-100">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account details</h2>
-            <div className="mt-4 space-y-2 text-sm text-slate-700">
+          <div className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Account details</h2>
+            <div className="mt-4 space-y-2 text-sm text-slate-700 dark:text-slate-200">
               <p><span className="font-medium">Email:</span> {user.email}</p>
               <p><span className="font-medium">Name:</span> {user.name}</p>
             </div>

@@ -688,9 +688,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }}
     >
       {initError ? (
-        <div className="min-h-screen flex items-center justify-center bg-light p-4">
-          <div className="max-w-md w-full rounded-2xl bg-white p-8 shadow-lg text-center">
-            <p className="text-slate-600 mb-4">{initError}</p>
+        <div className="min-h-screen flex items-center justify-center bg-light dark:bg-[#0A0F1A] p-4">
+          <div className="max-w-md w-full rounded-2xl bg-white dark:bg-slate-900 p-8 shadow-lg text-center">
+            <p className="text-slate-600 dark:text-slate-300 mb-4">{initError}</p>
             <button
               onClick={() => window.location.reload()}
               className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"

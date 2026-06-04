@@ -34,8 +34,8 @@ export default function AuthCallback() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-light p-4">
-      <div className="max-w-md w-full rounded-2xl bg-white p-8 shadow-lg text-center">
+    <div className="min-h-screen flex items-center justify-center bg-light dark:bg-[#0A0F1A] p-4">
+      <div className="max-w-md w-full rounded-2xl bg-white dark:bg-slate-900 p-8 shadow-lg text-center">
         {status === 'error' ? (
           <>
             <p className="text-red-600 mb-4">{message}</p>
@@ -43,7 +43,7 @@ export default function AuthCallback() {
         ) : (
           <>
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-            <p className="text-slate-600 mb-2">{message}</p>
+            <p className="text-slate-600 dark:text-slate-300 mb-2">{message}</p>
             <p className="text-xs text-slate-400">Please wait</p>
           </>
         )}
