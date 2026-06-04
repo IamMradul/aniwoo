@@ -2,8 +2,6 @@
 
 import Link from 'next/link';
 import { PawPrint, Stethoscope, ShoppingBag, Heart, Users, Camera, ChevronDown, CheckCircle2, Star } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { FadeInSection } from '@/components/common/FadeInSection';
 
 const serviceCards = [
   {
@@ -61,10 +59,29 @@ const reviews = [
   }
 ];
 
+// Helper: split text into word spans for stagger animation
+function AnimatedWords({ text, className }: { text: string; className?: string }) {
+  return (
+    <span className={className}>
+      {text.split(' ').map((word, i) => (
+        <span
+          key={i}
+          data-animate="hero-word"
+          className="inline-block"
+          style={{ marginRight: '0.3em' }}
+        >
+          {word}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 const HeroSection = () => {
   return (
     <section className="relative flex min-h-[93vh] items-start justify-center overflow-hidden bg-dark text-white pt-20 sm:pt-24 md:pt-32">
       <video
+        data-animate="hero-video"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top"
         autoPlay
         muted
@@ -80,39 +97,30 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/65 to-dark/90" />
 
       <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-center px-4 text-center sm:px-6 lg:px-8">
-        <motion.p
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+        <p
+          data-animate="hero-badge"
           className="mb-3 inline-flex items-center rounded-full bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-accent"
         >
           Your Pet&apos;s Best Friend
-        </motion.p>
+        </p>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="font-display text-4xl font-bold sm:text-5xl lg:text-6xl"
-        >
-          Complete Pet Care Solutions
-          <span className="block text-accent">at Your Fingertips</span>
-        </motion.h1>
+        <h1 className="font-display text-4xl font-bold sm:text-5xl lg:text-6xl">
+          <AnimatedWords text="Complete Pet Care Solutions" />
+          <span className="block text-accent">
+            <AnimatedWords text="at Your Fingertips" />
+          </span>
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
+        <p
+          data-animate="hero-subtitle"
           className="mt-4 max-w-2xl text-base text-slate-100 sm:text-lg"
         >
           From nutrition to grooming, vet services to AI health checks—Aniwoo brings everything your pet needs into one
           smart, loving platform.
-        </motion.p>
+        </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.3 }}
+        <div
+          data-animate="hero-cta"
           className="mt-8 flex flex-col gap-3 sm:flex-row"
         >
           <a
@@ -128,12 +136,10 @@ const HeroSection = () => {
             <Camera className="mr-2 h-4 w-4" />
             Try AI Health Check
           </Link>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.5 }}
+        <div
+          data-animate="hero-trust"
           className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-200/90 sm:text-sm"
         >
           <div className="flex items-center gap-2">
@@ -144,7 +150,7 @@ const HeroSection = () => {
             <CheckCircle2 className="h-4 w-4 text-secondary" />
             <span>Vet-reviewed care journeys</span>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-6 flex justify-center">
@@ -159,29 +165,25 @@ const HeroSection = () => {
 
 const ServicesSection = () => {
   return (
-    <FadeInSection id="services" className="paw-pattern-bg border-y border-slate-100/80 py-16">
+    <section id="services" className="paw-pattern-bg border-y border-slate-100/80 py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-2xl font-semibold text-dark sm:text-3xl">How Aniwoo Helps You</h2>
+          <h2 data-animate="section-header" className="font-display text-2xl font-semibold text-dark sm:text-3xl">How Aniwoo Helps You</h2>
           <p className="mt-3 text-sm text-slate-600 sm:text-base">
             A complete ecosystem to keep your pets healthy, happy, and connected—no matter where you are.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {serviceCards.map((card, index) => (
-            <motion.article
+        <div data-animate="services-grid" className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {serviceCards.map((card) => (
+            <article
               key={card.title}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
+              data-animate="service-card"
               className={[
                 'group flex flex-col rounded-2xl p-5',
                 'bg-gradient-to-br from-white via-white/95 to-secondary/5',
                 'ring-1 ring-slate-200/80 shadow-[2px_4px_16px_0_rgba(15,23,42,0.08)_inset]',
                 'transform-gpu transition duration-200 ease-out',
-                'hover:-translate-y-1 hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/15'
               ].join(' ')}
             >
               <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-white group-hover:shadow-md">
@@ -198,19 +200,19 @@ const ServicesSection = () => {
                 Learn More
                 <ChevronDown className="ml-1 h-3 w-3 -rotate-90" aria-hidden="true" />
               </Link>
-            </motion.article>
+            </article>
           ))}
         </div>
       </div>
-    </FadeInSection>
+    </section>
   );
 };
 
 const AiHighlightSection = () => {
   return (
-    <FadeInSection className="bg-white py-16">
+    <section data-animate="ai-section" className="bg-white py-16">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 sm:px-6 lg:flex-row lg:px-8">
-        <div className="order-2 flex-1 lg:order-1">
+        <div data-animate="ai-card" className="order-2 flex-1 lg:order-1">
           <div className="relative h-full rounded-3xl bg-gradient-to-br from-dark via-dark to-primary p-1">
             <div className="relative h-full rounded-[20px] bg-slate-950/90 p-5 shadow-xl">
               <div className="flex items-center justify-between">
@@ -263,7 +265,14 @@ const AiHighlightSection = () => {
                       <div className="h-2 flex-1 rounded-full bg-slate-800">
                         <div className="h-2 w-4/5 rounded-full bg-gradient-to-r from-secondary to-accent" />
                       </div>
-                      <span className="ml-2 text-xs font-semibold text-accent">85%</span>
+                      <span
+                        data-animate="stat-number"
+                        data-stat-value="85"
+                        data-stat-suffix="%"
+                        className="ml-2 text-xs font-semibold text-accent"
+                      >
+                        0%
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -272,9 +281,9 @@ const AiHighlightSection = () => {
           </div>
         </div>
 
-        <div className="order-1 flex-1 lg:order-2">
+        <div data-animate="ai-text" className="order-1 flex-1 lg:order-2">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-secondary">AI Health Check</p>
-          <h2 className="mt-2 font-display text-2xl font-semibold text-dark sm:text-3xl">
+          <h2 data-animate="section-header" className="mt-2 font-display text-2xl font-semibold text-dark sm:text-3xl">
             AI-Powered Health Detection
           </h2>
           <p className="mt-3 text-sm text-slate-600 sm:text-base">
@@ -314,16 +323,16 @@ const AiHighlightSection = () => {
           </div>
         </div>
       </div>
-    </FadeInSection>
+    </section>
   );
 };
 
 const ReviewsSection = () => {
   return (
-    <FadeInSection className="bg-light py-16">
+    <section data-animate="testimonials-section" className="bg-light py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-display text-2xl font-semibold text-dark sm:text-3xl">
+          <h2 data-animate="section-header" className="font-display text-2xl font-semibold text-dark sm:text-3xl">
             Loved by Pet Parents Across the Community
           </h2>
           <p className="mt-3 text-sm text-slate-600 sm:text-base">
@@ -333,13 +342,10 @@ const ReviewsSection = () => {
 
         <div className="mt-10">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {reviews.map((review, index) => (
-              <motion.figure
+            {reviews.map((review) => (
+              <figure
                 key={review.name}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
+                data-animate="testimonial-card"
                 className="flex h-full flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100"
               >
                 <div className="flex items-center gap-1 text-amber-400" aria-label="5 star rating">
@@ -352,7 +358,7 @@ const ReviewsSection = () => {
                   <span className="block text-dark">{review.name}</span>
                   <span className="text-slate-500">{review.role}</span>
                 </figcaption>
-              </motion.figure>
+              </figure>
             ))}
           </div>
 
@@ -366,16 +372,16 @@ const ReviewsSection = () => {
           </div>
         </div>
       </div>
-    </FadeInSection>
+    </section>
   );
 };
 
 const CtaBanner = () => {
   return (
-    <FadeInSection className="bg-gradient-to-r from-primary via-secondary to-primary py-10 text-white">
+    <section className="bg-gradient-to-r from-primary via-secondary to-primary py-10 text-white">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 px-4 text-center sm:px-6 sm:text-left lg:flex-row lg:px-8">
         <div>
-          <h2 className="font-display text-2xl font-semibold sm:text-3xl">
+          <h2 data-animate="section-header" className="font-display text-2xl font-semibold sm:text-3xl">
             Join thousands of happy pet parents
           </h2>
           <p className="mt-2 text-sm text-white/80 sm:text-base">
@@ -385,6 +391,7 @@ const CtaBanner = () => {
         <div className="flex flex-wrap justify-center gap-3">
           <Link
             href="/shop"
+            data-animate="cta-button"
             className="inline-flex items-center justify-center rounded-full bg-dark/90 px-7 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-dark"
           >
             Get Started with Aniwoo
@@ -397,7 +404,7 @@ const CtaBanner = () => {
           </Link>
         </div>
       </div>
-    </FadeInSection>
+    </section>
   );
 };
 
