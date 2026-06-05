@@ -3,8 +3,10 @@
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { FootprintTrail } from '../common/FootprintTrail';
+import { PageTransition } from '../common/PageTransition';
 import { SmoothScrollProvider } from '../providers/SmoothScrollProvider';
 import { ThemeProvider } from '../providers/ThemeProvider';
+import { AnimatePresence } from 'framer-motion';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,7 +16,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <FootprintTrail />
           <Header />
           <main className="flex-1 pt-16 sm:pt-20 lg:pt-16">
-            {children}
+            <AnimatePresence mode="wait">
+              <PageTransition key={typeof window !== 'undefined' ? window.location.pathname : 'server'}>
+                {children}
+              </PageTransition>
+            </AnimatePresence>
           </main>
           <Footer />
         </div>

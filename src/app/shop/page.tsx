@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { FadeInSection, FadeInItem } from '@/components/common/FadeInSection';
 
 type Product = {
   id: string;
@@ -93,47 +94,49 @@ export default function Shop() {
       )}
 
       {!loading && !error && products.length > 0 && (
-        <section className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <FadeInSection staggerChildren={0.1} className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
-            <article key={product.id} className="glass-card overflow-hidden transition-all duration-300">
-              {(selectedImages[product.id] || product.image_url) ? (
-                <img src={selectedImages[product.id] || product.image_url || ''} alt={product.name} className="h-44 w-full object-cover" />
-              ) : (
-                <div className="flex h-44 w-full items-center justify-center bg-slate-100 dark:bg-slate-800 text-sm text-slate-500 dark:text-slate-400">
-                  No image available
-                </div>
-              )}
-              <div className="p-4">
-                {product.image_urls.length > 1 && (
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    {product.image_urls.map((url) => (
-                      <button
-                        key={url}
-                        type="button"
-                        onClick={() => setSelectedImages((prev) => ({ ...prev, [product.id]: url }))}
-                        className={`overflow-hidden rounded-lg border ${
-                          (selectedImages[product.id] || product.image_url) === url ? 'border-primary' : 'border-slate-200 dark:border-slate-700'
-                        }`}
-                        aria-label={`Show image for ${product.name}`}
-                      >
-                        <img src={url} alt={`${product.name} thumbnail`} className="h-12 w-12 object-cover" />
-                      </button>
-                    ))}
+            <FadeInItem key={product.id}>
+              <article className="glass-card overflow-hidden transition-all duration-300">
+                {(selectedImages[product.id] || product.image_url) ? (
+                  <img src={selectedImages[product.id] || product.image_url || ''} alt={product.name} className="h-44 w-full object-cover" />
+                ) : (
+                  <div className="flex h-44 w-full items-center justify-center bg-slate-100 dark:bg-slate-800 text-sm text-slate-500 dark:text-slate-400">
+                    No image available
                   </div>
                 )}
-                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{product.category || 'General'}</p>
-                <h2 className="mt-1 text-lg font-semibold text-dark dark:text-white">{product.name}</h2>
-                {product.description && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 line-clamp-3">{product.description}</p>}
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-base font-semibold text-dark dark:text-white">INR {Number(product.price || 0).toFixed(2)}</p>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${product.in_stock ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
-                    {product.in_stock ? 'In stock' : 'Out of stock'}
-                  </span>
+                <div className="p-4">
+                  {product.image_urls.length > 1 && (
+                    <div className="mb-3 flex flex-wrap gap-2">
+                      {product.image_urls.map((url) => (
+                        <button
+                          key={url}
+                          type="button"
+                          onClick={() => setSelectedImages((prev) => ({ ...prev, [product.id]: url }))}
+                          className={`overflow-hidden rounded-lg border ${
+                            (selectedImages[product.id] || product.image_url) === url ? 'border-primary' : 'border-slate-200 dark:border-slate-700'
+                          }`}
+                          aria-label={`Show image for ${product.name}`}
+                        >
+                          <img src={url} alt={`${product.name} thumbnail`} className="h-12 w-12 object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{product.category || 'General'}</p>
+                  <h2 className="mt-1 text-lg font-semibold text-dark dark:text-white">{product.name}</h2>
+                  {product.description && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 line-clamp-3">{product.description}</p>}
+                  <div className="mt-4 flex items-center justify-between">
+                    <p className="text-base font-semibold text-dark dark:text-white">INR {Number(product.price || 0).toFixed(2)}</p>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${product.in_stock ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
+                      {product.in_stock ? 'In stock' : 'Out of stock'}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </article>
+              </article>
+            </FadeInItem>
           ))}
-        </section>
+        </FadeInSection>
       )}
     </main>
   );

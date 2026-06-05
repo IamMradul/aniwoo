@@ -6,7 +6,7 @@ import { PawPrint, Menu, X, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const navItems = [
   { href: '/', label: 'Home' },
@@ -21,18 +21,31 @@ export const Header = () => {
   const { isAuthenticated, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <header
-      className="fixed inset-x-0 top-0 z-40 backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
+      className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${
+        isScrolled
+          ? 'backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.08)] py-1'
+          : 'bg-transparent py-3'
+      }`}
       style={{
-        backgroundColor: 'var(--header-bg)',
-        borderBottom: '1px solid var(--header-border)',
+        backgroundColor: isScrolled ? 'var(--header-bg)' : 'transparent',
+        borderBottom: isScrolled ? '1px solid var(--header-border)' : '1px solid transparent',
       }}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
           <motion.div
             whileHover={{ rotate: -10 }}

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { PawPrint, Stethoscope, ShoppingBag, Heart, Users, Camera, ChevronDown, CheckCircle2, Star, ArrowRight, Shield, TrendingUp } from 'lucide-react';
+import { FadeInSection, FadeInItem } from '@/components/common/FadeInSection';
 
 const serviceCards = [
   {
@@ -225,13 +226,12 @@ const ServicesSection = () => {
           </p>
         </div>
 
-        <div data-animate="services-grid" className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <FadeInSection staggerChildren={0.1} className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {serviceCards.map((card) => (
-            <article
-              key={card.title}
-              data-animate="service-card"
-              className="glass-card group flex flex-col p-6 transition-all duration-300"
-            >
+            <FadeInItem key={card.title}>
+              <article
+                className="glass-card group flex h-full flex-col p-6 transition-all duration-300"
+              >
               {/* Icon with gradient background */}
               <div className={`mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${card.gradient} text-primary transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-primary/20`}>
                 <card.icon className="h-5 w-5" aria-hidden="true" />
@@ -249,10 +249,11 @@ const ServicesSection = () => {
               >
                 Learn More
                 <ArrowRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </article>
+                </Link>
+              </article>
+            </FadeInItem>
           ))}
-        </div>
+        </FadeInSection>
       </div>
     </section>
   );
@@ -467,13 +468,12 @@ const ReviewsSection = () => {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+        <FadeInSection staggerChildren={0.15} className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {reviews.map((review) => (
-            <figure
-              key={review.name}
-              data-animate="testimonial-card"
-              className="glass-card flex h-full flex-col p-5"
-            >
+            <FadeInItem key={review.name}>
+              <figure
+                className="glass-card flex h-full flex-col p-5"
+              >
               {/* Stars */}
               <div className="flex items-center gap-0.5 text-amber-400" aria-label="5 star rating">
                 {Array.from({ length: 5 }).map((_, starIndex) => (
@@ -495,10 +495,11 @@ const ReviewsSection = () => {
                   <span className="block text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{review.name}</span>
                   <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{review.role}</span>
                 </div>
-              </figcaption>
-            </figure>
+                </figcaption>
+              </figure>
+            </FadeInItem>
           ))}
-        </div>
+        </FadeInSection>
       </div>
     </section>
   );
