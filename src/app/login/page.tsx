@@ -134,7 +134,7 @@ export default function Login() {
                 id="email"
                 type="email"
                 {...register('email')}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="you@example.com"
                 aria-invalid={errors.email ? 'true' : 'false'}
               />
@@ -153,7 +153,7 @@ export default function Login() {
                 id="password"
                 type="password"
                 {...register('password')}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="Enter your password"
                 aria-invalid={errors.password ? 'true' : 'false'}
               />
@@ -165,7 +165,7 @@ export default function Login() {
             </div>
 
             {loginError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+              <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">
                 {loginError}
               </div>
             )}

@@ -83,7 +83,7 @@ export default function Shop() {
       {loading && <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">Loading products...</p>}
 
       {error && (
-        <p className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
+        <p className="mt-6 rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-3 text-sm text-red-600 dark:text-red-400">
           {error}
         </p>
       )}
@@ -95,7 +95,7 @@ export default function Shop() {
       {!loading && !error && products.length > 0 && (
         <section className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
-            <article key={product.id} className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
+            <article key={product.id} className="glass-card overflow-hidden transition-all duration-300">
               {(selectedImages[product.id] || product.image_url) ? (
                 <img src={selectedImages[product.id] || product.image_url || ''} alt={product.name} className="h-44 w-full object-cover" />
               ) : (
@@ -126,7 +126,7 @@ export default function Shop() {
                 {product.description && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 line-clamp-3">{product.description}</p>}
                 <div className="mt-4 flex items-center justify-between">
                   <p className="text-base font-semibold text-dark dark:text-white">INR {Number(product.price || 0).toFixed(2)}</p>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${product.in_stock ? 'bg-green-100 text-green-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${product.in_stock ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>
                     {product.in_stock ? 'In stock' : 'Out of stock'}
                   </span>
                 </div>

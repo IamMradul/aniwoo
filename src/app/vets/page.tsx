@@ -151,13 +151,13 @@ export default function Vets() {
   if (loadError) {
     return (
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-red-200 bg-red-50 px-6 py-8 text-center">
-          <h1 className="text-xl font-semibold text-red-700">Unable to load veterinarians</h1>
-          <p className="mt-2 text-sm text-red-600">{loadError}</p>
+        <div className="rounded-3xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-6 py-8 text-center">
+          <h1 className="text-xl font-semibold text-red-700 dark:text-red-400">Unable to load veterinarians</h1>
+          <p className="mt-2 text-sm text-red-600 dark:text-red-300">{loadError}</p>
           <button
             type="button"
             onClick={loadVets}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:hover:bg-red-500"
           >
             <RefreshCw className="h-4 w-4" />
             Try again
@@ -324,7 +324,7 @@ export default function Vets() {
                 {vet.clinic_image_url ? (
                   <img src={vet.clinic_image_url} alt={vet.clinic_name} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-50 to-white text-slate-300">
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-50 dark:from-slate-800 to-white dark:to-slate-900 text-slate-300 dark:text-slate-600">
                     <Building2 className="h-12 w-12 opacity-50" />
                   </div>
                 )}
@@ -420,7 +420,7 @@ export default function Vets() {
                   setBookingVet(null);
                   setBookingSuccess(false);
                 }}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 dark:bg-slate-800 hover:text-slate-600 dark:text-slate-300"
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -428,7 +428,7 @@ export default function Vets() {
 
             {bookingSuccess ? (
               <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in">
-                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400">
                   <Award className="h-8 w-8" />
                 </div>
                 <h3 className="text-lg font-semibold text-dark dark:text-white">Request Sent!</h3>
@@ -438,21 +438,21 @@ export default function Vets() {
               <form onSubmit={handleBookAppointment} className="space-y-4">
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Pet Name</label>
-                  <input required value={petName} onChange={e => setPetName(e.target.value)} type="text" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Max" />
+                  <input required value={petName} onChange={e => setPetName(e.target.value)} type="text" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Max" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Date</label>
-                    <input required value={bookingDate} onChange={e => setBookingDate(e.target.value)} type="date" min={new Date().toISOString().split('T')[0]} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
+                    <input required value={bookingDate} onChange={e => setBookingDate(e.target.value)} type="date" min={new Date().toISOString().split('T')[0]} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                   </div>
                   <div>
                     <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Time</label>
-                    <input required value={bookingTime} onChange={e => setBookingTime(e.target.value)} type="time" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
+                    <input required value={bookingTime} onChange={e => setBookingTime(e.target.value)} type="time" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
                   </div>
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Reason for visit</label>
-                  <textarea required value={reason} onChange={e => setReason(e.target.value)} rows={3} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Annual checkup, vaccinations..."></textarea>
+                  <textarea required value={reason} onChange={e => setReason(e.target.value)} rows={3} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="e.g. Annual checkup, vaccinations..."></textarea>
                 </div>
                 <div className="pt-2">
                   <button disabled={isBooking} type="submit" className="w-full rounded-full bg-primary py-3 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:opacity-70">

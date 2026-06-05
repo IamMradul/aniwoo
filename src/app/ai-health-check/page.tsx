@@ -70,21 +70,21 @@ const statusConfig: Record<
 > = {
   healthy: {
     label: 'Healthy',
-    colorClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    badgeClass: 'bg-emerald-500/10 text-emerald-600',
+    colorClass: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+    badgeClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
     description: 'Your pet appears healthy based on this photo. Keep up the great care!'
   },
   warning: {
     label: 'Warning',
-    colorClass: 'bg-amber-50 text-amber-800 border-amber-200',
-    badgeClass: 'bg-amber-500/10 text-amber-700',
+    colorClass: 'bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+    badgeClass: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
     description:
       'Our AI has detected some early signs that may require attention. We recommend monitoring and speaking with a vet.'
   },
   concern: {
     label: 'Concern',
-    colorClass: 'bg-red-50 text-red-800 border-red-200',
-    badgeClass: 'bg-red-500/10 text-red-700',
+    colorClass: 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 border-red-200 dark:border-red-800',
+    badgeClass: 'bg-red-500/10 text-red-700 dark:text-red-400',
     description:
       'There are signs that could indicate a health issue. Please consult a licensed veterinarian as soon as possible.'
   }
@@ -228,7 +228,7 @@ export default function AiHealthCheck() {
                 className={`mt-4 flex min-h-[220px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed px-4 text-center transition ${
                   isDragging
                     ? 'border-primary bg-primary/5'
-                    : 'border-slate-200 dark:border-slate-700 hover:border-primary/70 hover:bg-slate-50/80'
+                    : 'border-slate-200 dark:border-slate-700 hover:border-primary/70 hover:bg-slate-50/80 dark:hover:bg-slate-800/80'
                 }`}
                 onDragOver={(event) => {
                   event.preventDefault();
@@ -386,7 +386,7 @@ export default function AiHealthCheck() {
                     </button>
                     <Link
                       href="/vets"
-                      className="inline-flex items-center justify-center rounded-full border border-dark/80 bg-dark px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-black"
+                      className="inline-flex items-center justify-center rounded-full border border-dark/80 dark:border-slate-600 bg-dark dark:bg-slate-700 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-black dark:hover:bg-slate-600"
                     >
                       <Stethoscope className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
                       Consult a Vet

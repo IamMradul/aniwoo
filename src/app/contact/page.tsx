@@ -56,7 +56,7 @@ export default function Contact() {
                 id="name"
                 type="text"
                 {...register('name')}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="Your full name"
                 aria-invalid={errors.name ? 'true' : 'false'}
               />
@@ -75,7 +75,7 @@ export default function Contact() {
                 id="email"
                 type="email"
                 {...register('email')}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="you@example.com"
                 aria-invalid={errors.email ? 'true' : 'false'}
               />
@@ -93,7 +93,7 @@ export default function Contact() {
               <select
                 id="topic"
                 {...register('topic')}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 aria-invalid={errors.topic ? 'true' : 'false'}
               >
                 <option value="">Select a topic</option>
@@ -119,7 +119,7 @@ export default function Contact() {
                 id="message"
                 rows={4}
                 {...register('message')}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
                 placeholder="Tell us how we can help you and your pet."
                 aria-invalid={errors.message ? 'true' : 'false'}
               />
@@ -146,9 +146,9 @@ export default function Contact() {
           </form>
         </div>
 
-        <aside aria-label="Aniwoo contact details" className="space-y-4 rounded-2xl bg-white dark:bg-slate-900 p-5 shadow-sm ring-1 ring-slate-100 dark:ring-slate-800">
-          <h2 className="text-sm font-semibold text-dark dark:text-white">Other ways to reach us</h2>
-          <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+        <aside aria-label="Aniwoo contact details" className="space-y-4 rounded-2xl p-5 shadow-sm ring-1 ring-slate-100 dark:ring-slate-800" style={{ backgroundColor: 'var(--card-bg)' }}>
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Other ways to reach us</h2>
+          <ul className="space-y-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
             <li>Email: support@aniwoo.pet</li>
             <li>Phone: +1 (555) 987-1234</li>
             <li>Address: 123 Pet Lane, Paw City</li>

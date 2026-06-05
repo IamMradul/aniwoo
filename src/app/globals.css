@@ -38,12 +38,15 @@
 }
 
 /* ─── Base ────────────────────────────────────────────────────────── */
+html {
+  @apply transition-colors duration-300;
+}
+
 body {
-  @apply bg-light text-dark font-sans antialiased;
+  @apply bg-light text-dark font-sans antialiased transition-colors duration-300;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   cursor: url('/cursor-paw.svg') 18 18, auto;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a,
@@ -53,6 +56,20 @@ input,
 select,
 textarea {
   cursor: url('/cursor-paw.svg') 18 18, pointer;
+}
+
+input,
+select,
+textarea {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
 }
 
 /* ─── Premium Utility Classes ─────────────────────────────────────── */
