@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, ChevronRight, Minus, Plus, ShoppingCart, IndianRupee } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FadeInSection, FadeInItem } from '@/components/common/FadeInSection';
+import { useCart } from '@/context/CartContext';
 
 type Product = {
   id: string;
@@ -22,6 +23,7 @@ export default function ProductDetail() {
   const params = useParams();
   const router = useRouter();
   const productId = params.productId as string;
+  const { addItem } = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -96,10 +98,16 @@ export default function ProductDetail() {
   }, [productId]);
 
   const handleAddToCart = () => {
-    // TODO: Implement CartContext logic here in Task 4
-    console.log(`Added ${quantity} of ${product?.name} to cart`);
-    // Placeholder toast logic
-    alert(`Added ${quantity} item(s) to cart`);
+    if (!product) return;
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: quantity,
+      image_url: product.image_url,
+      category: product.category,
+    });
+    // Visual feedback could be added here, but the cart drawer update is usually enough
   };
 
   const handleBuyNow = () => {

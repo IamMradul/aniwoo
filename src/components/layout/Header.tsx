@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PawPrint, Menu, X, Sun, Moon } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { PawPrint, Menu, X, Sun, Moon, ShoppingCart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { useCart } from '@/context/CartContext';
+import { CartDrawer } from '@/components/cart/CartDrawer';
 import { useState, useEffect } from 'react';
 
 const navItems = [
@@ -20,7 +22,9 @@ export const Header = () => {
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { state: cartState } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -91,6 +95,29 @@ export const Header = () => {
             )}
           </button>
 
+          {/* Cart Toggle */}
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-primary/10"
+            style={{ color: 'var(--text-secondary)' }}
+            aria-label="Open cart"
+          >
+            <ShoppingCart className="h-[18px] w-[18px]" />
+            <AnimatePresence>
+              {cartState.totalQuantity > 0 && (
+                <motion.span
+                  key={cartState.totalQuantity}
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-white shadow-sm"
+                >
+                  {cartState.totalQuantity}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+
           {isAuthenticated && user?.role === 'admin' && (
             <Link
               href="/admin"
@@ -117,7 +144,7 @@ export const Header = () => {
           {pathname === '/' ? 'All-in-one' : 'Platform'}
         </span>
 
-        {/* Mobile: Theme Toggle + Menu */}
+        {/* Mobile: Theme + Cart + Menu */}
         <div className="flex items-center gap-2 lg:hidden">
           <button
             onClick={toggleTheme}
@@ -130,6 +157,27 @@ export const Header = () => {
             ) : (
               <Sun className="h-[18px] w-[18px]" />
             )}
+          </button>
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-200 hover:bg-primary/10"
+            style={{ color: 'var(--text-secondary)' }}
+            aria-label="Open cart"
+          >
+            <ShoppingCart className="h-[18px] w-[18px]" />
+            <AnimatePresence>
+              {cartState.totalQuantity > 0 && (
+                <motion.span
+                  key={cartState.totalQuantity}
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-white shadow-sm"
+                >
+                  {cartState.totalQuantity}
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -207,6 +255,9 @@ export const Header = () => {
           </nav>
         </motion.div>
       )}
+
+      {/* Cart Drawer */}
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );
 };
