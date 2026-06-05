@@ -38,19 +38,20 @@ export const Header = () => {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${
-        isScrolled
-          ? 'backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.08)] py-1'
-          : 'bg-transparent py-3'
-      }`}
-      style={{
-        backgroundColor: isScrolled ? 'var(--header-bg)' : 'transparent',
-        borderBottom: isScrolled ? '1px solid var(--header-border)' : '1px solid transparent',
-      }}
-    >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
+    <div className="sticky top-0 z-40 h-0 w-full overflow-visible">
+      <header
+        className={`absolute inset-x-0 top-0 transition-all duration-300 ${
+          isScrolled
+            ? 'backdrop-blur-xl shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
+            : 'bg-transparent'
+        }`}
+        style={{
+          backgroundColor: isScrolled ? 'var(--header-bg)' : 'transparent',
+          borderBottom: isScrolled ? '1px solid var(--header-border)' : '1px solid transparent',
+        }}
+      >
+        <div className={`mx-auto flex w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8 transition-all duration-300 ${isScrolled ? 'py-1' : 'py-3'}`}>
+          <Link href="/" className="flex items-center gap-2" onClick={closeMobileMenu}>
           <motion.div
             whileHover={{ rotate: -10 }}
             className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary text-white shadow-md"
@@ -224,7 +225,6 @@ export const Header = () => {
                 {item.label}
               </Link>
             ))}
-
             {/* Mobile Auth Section */}
             <div className="mt-4 pt-4 flex flex-col gap-3" style={{ borderTop: '1px solid var(--border-color)' }}>
               {isAuthenticated && user?.role === 'admin' && (
@@ -258,6 +258,7 @@ export const Header = () => {
 
       {/* Cart Drawer */}
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-    </header>
+      </header>
+    </div>
   );
 };

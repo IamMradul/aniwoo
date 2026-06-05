@@ -59,6 +59,7 @@ export default function OnboardingModal() {
 
   useEffect(() => {
     if (!isAuthenticated || !user || !user.role) return;
+    if (user.role === 'admin') return;
 
     // Check if user has already done onboarding this session
     try {
