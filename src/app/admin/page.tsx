@@ -3,6 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  LayoutDashboard, Package, Users, Plus, Image as ImageIcon, 
+  Trash2, X, Shield, User, HeartPulse, ShoppingBag, IndianRupee,
+  MoreVertical, CheckCircle2, AlertCircle, Edit, ArrowRight, XCircle
+} from 'lucide-react';
 
 type AdminUser = {
   id: string;
@@ -46,7 +52,7 @@ const initialForm: ProductForm = {
 
 export default function AdminPortalPage() {
   const { user, isAuthenticated } = useAuth();
-  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [usersList, setUsersList] = useState<AdminUser[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [productsLoading, setProductsLoading] = useState(true);
@@ -54,6 +60,10 @@ export default function AdminPortalPage() {
   const [form, setForm] = useState<ProductForm>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  
+  // UI State
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'users'>('dashboard');
+  const [showProductForm, setShowProductForm] = useState(false);
 
   const isAdmin = user?.role === 'admin';
 
@@ -66,7 +76,7 @@ export default function AdminPortalPage() {
       throw new Error(payload?.error || 'Failed to fetch users');
     }
 
-    setUsers(payload.data || []);
+    setUsersList(payload.data || []);
     setUsersLoading(false);
   };
 
@@ -117,7 +127,7 @@ export default function AdminPortalPage() {
   }, [isAuthenticated, isAdmin]);
 
   const roleStats = useMemo(() => {
-    return users.reduce(
+    return usersList.reduce(
       (acc, current) => {
         if (current.role === 'admin') acc.admin += 1;
         if (current.role === 'vet') acc.vet += 1;
@@ -126,7 +136,7 @@ export default function AdminPortalPage() {
       },
       { admin: 0, vet: 0, petOwner: 0 }
     );
-  }, [users]);
+  }, [usersList]);
 
   const handleCreateProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -166,6 +176,7 @@ export default function AdminPortalPage() {
       }
 
       setForm(initialForm);
+      setShowProductForm(false);
       await loadProducts();
     } catch (err: any) {
       setError(err.message || 'Unable to create product');
@@ -247,6 +258,7 @@ export default function AdminPortalPage() {
   };
 
   const deleteProduct = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
     try {
       const response = await fetch(`/api/admin/products?id=${encodeURIComponent(id)}`, {
         method: 'DELETE',
@@ -264,13 +276,451 @@ export default function AdminPortalPage() {
     }
   };
 
+  // --- Render Helpers ---
+
+  const renderDashboard = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="space-y-8"
+    >
+      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        {/* Total Users */}
+        <div className="glass-card premium-card p-6 relative overflow-hidden group">
+           <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 transition-transform duration-500 group-hover:scale-[2]" />
+           <div className="relative flex items-center justify-between">
+             <div>
+               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Users</p>
+               <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{usersList.length}</p>
+             </div>
+             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary shadow-inner">
+               <Users className="h-6 w-6" />
+             </div>
+           </div>
+        </div>
+        {/* Admins */}
+        <div className="glass-card premium-card p-6 relative overflow-hidden group">
+           <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-purple-500/10 transition-transform duration-500 group-hover:scale-[2]" />
+           <div className="relative flex items-center justify-between">
+             <div>
+               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Admins</p>
+               <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{roleStats.admin}</p>
+             </div>
+             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shadow-inner">
+               <Shield className="h-6 w-6" />
+             </div>
+           </div>
+        </div>
+        {/* Vets */}
+        <div className="glass-card premium-card p-6 relative overflow-hidden group">
+           <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-teal-500/10 transition-transform duration-500 group-hover:scale-[2]" />
+           <div className="relative flex items-center justify-between">
+             <div>
+               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Veterinarians</p>
+               <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{roleStats.vet}</p>
+             </div>
+             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 shadow-inner">
+               <HeartPulse className="h-6 w-6" />
+             </div>
+           </div>
+        </div>
+        {/* Pet Owners */}
+        <div className="glass-card premium-card p-6 relative overflow-hidden group">
+           <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-blue-500/10 transition-transform duration-500 group-hover:scale-[2]" />
+           <div className="relative flex items-center justify-between">
+             <div>
+               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Pet Owners</p>
+               <p className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{roleStats.petOwner}</p>
+             </div>
+             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shadow-inner">
+               <User className="h-6 w-6" />
+             </div>
+           </div>
+        </div>
+      </div>
+      
+      {/* Quick Actions & Overview */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="glass-card p-6 sm:p-8">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center">
+            <ShoppingBag className="w-5 h-5 mr-2 text-primary" /> Shop Overview
+          </h3>
+          <div className="space-y-4">
+             <div className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+               <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Total Products</span>
+               <span className="text-xl font-bold text-slate-900 dark:text-white">{products.length}</span>
+             </div>
+             <div className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+               <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Out of Stock</span>
+               <span className="text-xl font-bold text-red-600 dark:text-red-400">{products.filter(p => !p.in_stock).length}</span>
+             </div>
+             <button 
+                onClick={() => { setActiveTab('products'); setShowProductForm(true); }} 
+                className="mt-6 w-full flex items-center justify-center py-3.5 rounded-xl bg-primary/10 text-primary font-semibold hover:bg-primary/20 transition-colors"
+             >
+               <Plus className="w-5 h-5 mr-2" /> Add New Product
+             </button>
+          </div>
+        </div>
+
+        <div className="glass-card p-6 sm:p-8 flex flex-col justify-between overflow-hidden relative">
+          <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none translate-x-1/4 translate-y-1/4">
+            <Shield className="w-64 h-64 text-slate-900 dark:text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">Welcome to Admin Portal</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-sm">
+              Manage your users, organize shop inventory, and oversee platform operations. Keep everything running smoothly.
+            </p>
+          </div>
+          <div className="mt-8">
+            <Link href="/profile" className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+              Manage personal profile <ArrowRight className="ml-1 w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderProducts = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="space-y-6"
+    >
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Product Catalog</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Manage your store inventory and visibility.</p>
+        </div>
+        <button 
+          onClick={() => setShowProductForm(!showProductForm)}
+          className="flex items-center px-5 py-2.5 bg-primary text-white rounded-full font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
+        >
+          {showProductForm ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+          {showProductForm ? 'Cancel' : 'Add Product'}
+        </button>
+      </div>
+  
+      <AnimatePresence>
+        {showProductForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginBottom: 32 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="glass-card p-6 sm:p-8 mt-2 border-t-4 border-t-primary">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Create New Product</h3>
+              <form onSubmit={handleCreateProduct} className="space-y-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-5">
+                    <div>
+                      <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Product name *</label>
+                      <input
+                        id="name"
+                        value={form.name}
+                        onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                        placeholder="e.g. Healthy Puppy Kibble"
+                      />
+                    </div>
+        
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="price" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Price (INR) *</label>
+                        <div className="relative">
+                          <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            id="price"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={form.price}
+                            onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+                            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                            placeholder="899"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="category" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Category</label>
+                        <input
+                          id="category"
+                          value={form.category}
+                          onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                          className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                          placeholder="e.g. Food, Toys"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="description" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Description</label>
+                      <textarea
+                        id="description"
+                        rows={4}
+                        value={form.description}
+                        onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none"
+                        placeholder="Provide details about the product..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1.5">Product Photos</label>
+                      <label htmlFor="productImages" className="mt-1 flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
+                          <p className="text-sm text-slate-500 dark:text-slate-400"><span className="font-semibold text-primary">Click to upload</span> or drag and drop</p>
+                        </div>
+                        <input
+                          id="productImages"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={handleImageUpload}
+                        />
+                      </label>
+                      
+                      {uploadingImages && (
+                        <p className="mt-3 text-xs font-semibold text-primary animate-pulse flex items-center">
+                          <div className="w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin mr-2" />
+                          Uploading images...
+                        </p>
+                      )}
+        
+                      {form.image_urls.length > 0 && (
+                        <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
+                          {form.image_urls.map((url) => (
+                            <div key={url} className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+                              <img src={url} alt="Product preview" className="h-full w-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => removeFormImage(url)}
+                                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                aria-label="Remove image"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                      <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-3">Visibility & Status</h4>
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={form.in_stock}
+                            onChange={(e) => setForm((prev) => ({ ...prev, in_stock: e.target.checked }))}
+                            className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary"
+                          />
+                          <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">In Stock</span>
+                        </label>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={form.is_active}
+                            onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.checked }))}
+                            className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary"
+                          />
+                          <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">Active (Visible in Shop)</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+        
+                <div className="flex justify-end border-t border-slate-200 dark:border-slate-800 pt-6">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="inline-flex items-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary/90 hover:-translate-y-0.5 disabled:transform-none disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {submitting ? 'Saving Product...' : 'Save Product'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+  
+      {/* Products Grid */}
+      {productsLoading ? (
+        <div className="py-12 text-center text-slate-500">Loading products...</div>
+      ) : products.length === 0 ? (
+        <div className="glass-card flex flex-col items-center justify-center p-12 text-center">
+          <Package className="w-12 h-12 text-slate-300 dark:text-slate-600 mb-4" />
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white">No products found</h3>
+          <p className="mt-1 text-slate-500 dark:text-slate-400 mb-6">Get started by creating your first product.</p>
+          <button 
+            onClick={() => setShowProductForm(true)}
+            className="px-6 py-2 bg-primary/10 text-primary rounded-full font-medium hover:bg-primary/20 transition-colors"
+          >
+            Add Product
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {products.map((product) => (
+            <article key={product.id} className="glass-card flex flex-col overflow-hidden group">
+              <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                {product.image_url ? (
+                  <img src={product.image_url} alt={product.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="flex w-full h-full items-center justify-center text-slate-400"><ImageIcon className="w-8 h-8 opacity-50" /></div>
+                )}
+                <div className="absolute top-3 left-3 flex gap-2">
+                  <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md backdrop-blur-md ${product.in_stock ? 'bg-green-500/20 text-green-700 dark:text-green-300 border border-green-500/30' : 'bg-red-500/20 text-red-700 dark:text-red-300 border border-red-500/30'}`}>
+                    {product.in_stock ? 'In Stock' : 'Out of Stock'}
+                  </span>
+                  <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md backdrop-blur-md ${product.is_active ? 'bg-white/50 dark:bg-black/50 text-slate-800 dark:text-white border border-white/20' : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30'}`}>
+                    {product.is_active ? 'Visible' : 'Hidden'}
+                  </span>
+                </div>
+              </div>
+              <div className="p-5 flex flex-col flex-1">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-semibold text-slate-900 dark:text-white line-clamp-1">{product.name}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{product.category || 'General'}</p>
+                  </div>
+                  <p className="font-bold text-slate-900 dark:text-white whitespace-nowrap ml-3">
+                    <IndianRupee className="inline w-3.5 h-3.5 -mt-0.5 mr-0.5" />{Number(product.price).toFixed(2)}
+                  </p>
+                </div>
+                
+                <div className="mt-auto pt-4 flex gap-2 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    onClick={() => toggleProductStatus(product.id, 'in_stock', product.in_stock)}
+                    className="flex-1 flex items-center justify-center py-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    {product.in_stock ? <XCircle className="w-3.5 h-3.5 mr-1.5 text-amber-500" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-green-500" />}
+                    {product.in_stock ? 'Set Out' : 'Set In Stock'}
+                  </button>
+                  <button
+                    onClick={() => toggleProductStatus(product.id, 'is_active', product.is_active)}
+                    className="flex-1 flex items-center justify-center py-2 rounded-lg bg-slate-50 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    {product.is_active ? <EyeOff className="w-3.5 h-3.5 mr-1.5 text-slate-500" /> : <Eye className="w-3.5 h-3.5 mr-1.5 text-primary" />}
+                    {product.is_active ? 'Hide' : 'Show'}
+                  </button>
+                  <button
+                    onClick={() => deleteProduct(product.id)}
+                    className="flex items-center justify-center w-10 py-2 rounded-lg bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+                    aria-label="Delete product"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+
+  const renderUsers = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="space-y-6"
+    >
+       <div className="flex justify-between items-center mb-2">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">User Directory</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">View and manage registered accounts.</p>
+        </div>
+      </div>
+      
+      <div className="glass-card overflow-hidden">
+        {usersLoading ? (
+          <div className="py-12 text-center text-slate-500">Loading users...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+                <tr>
+                  <th className="px-6 py-4">User</th>
+                  <th className="px-6 py-4">Contact</th>
+                  <th className="px-6 py-4">Role</th>
+                  <th className="px-6 py-4">Joined Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                {usersList.map((entry) => {
+                  // Role badge logic
+                  let badgeColor = 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
+                  let RoleIcon = User;
+                  if (entry.role === 'admin') {
+                    badgeColor = 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30';
+                    RoleIcon = Shield;
+                  } else if (entry.role === 'vet') {
+                    badgeColor = 'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300 border border-teal-200 dark:border-teal-500/30';
+                    RoleIcon = HeartPulse;
+                  } else if (entry.role === 'pet_owner') {
+                    badgeColor = 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30';
+                  }
+
+                  const initials = (entry.name || 'U').substring(0, 2).toUpperCase();
+
+                  return (
+                    <tr key={entry.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-primary flex items-center justify-center font-bold text-xs border border-primary/10">
+                            {initials}
+                          </div>
+                          <div className="ml-4">
+                            <div className="font-medium text-slate-900 dark:text-white">{entry.name || 'Unnamed user'}</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5 opacity-70 truncate max-w-[120px]" title={entry.id}>{entry.id.substring(0,8)}...</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{entry.email}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${badgeColor}`}>
+                          <RoleIcon className="w-3.5 h-3.5 mr-1.5" />
+                          {entry.role === 'pet_owner' ? 'Pet Owner' : entry.role === 'vet' ? 'Veterinarian' : entry.role === 'admin' ? 'Admin' : 'Unknown'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                        {entry.created_at ? new Date(entry.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  // --- Main Layout Render ---
+
   if (!isAuthenticated) {
     return (
-      <main className="mx-auto flex min-h-[70vh] max-w-6xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <section className="rounded-2xl bg-white/90 dark:bg-slate-900/90 p-8 text-center shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
-          <h1 className="font-display text-2xl font-semibold text-dark dark:text-white">Admin login required</h1>
-          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">Please sign in with an admin account to access the portal.</p>
-          <Link href="/login" className="mt-5 inline-flex rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white">
+      <main className="mx-auto flex min-h-[70vh] max-w-6xl items-center justify-center px-4 py-10">
+        <section className="glass-card p-8 text-center max-w-md w-full">
+          <Shield className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+          <h1 className="font-display text-2xl font-semibold text-dark dark:text-white">Admin Login Required</h1>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">Please sign in with an administrator account to access this portal.</p>
+          <Link href="/login" className="mt-6 inline-flex rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
             Go to Login
           </Link>
         </section>
@@ -280,12 +730,13 @@ export default function AdminPortalPage() {
 
   if (!isAdmin) {
     return (
-      <main className="mx-auto flex min-h-[70vh] max-w-6xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
-        <section className="rounded-2xl bg-white/90 dark:bg-slate-900/90 p-8 text-center shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
-          <h1 className="font-display text-2xl font-semibold text-dark dark:text-white">Access denied</h1>
-          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">This area is reserved for admin users only.</p>
-          <Link href="/profile" className="mt-5 inline-flex rounded-full border border-slate-300 dark:border-slate-700 px-6 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
-            Back to Profile
+      <main className="mx-auto flex min-h-[70vh] max-w-6xl items-center justify-center px-4 py-10">
+        <section className="glass-card p-8 text-center max-w-md w-full border-t-4 border-t-red-500">
+          <AlertCircle className="w-12 h-12 text-red-500/50 mx-auto mb-4" />
+          <h1 className="font-display text-2xl font-semibold text-dark dark:text-white">Access Denied</h1>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">This area is highly restricted. Your account does not have administrator privileges.</p>
+          <Link href="/profile" className="mt-6 inline-flex rounded-full border-2 border-slate-200 dark:border-slate-700 px-8 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+            Return to Profile
           </Link>
         </section>
       </main>
@@ -293,260 +744,63 @@ export default function AdminPortalPage() {
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <section className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800 sm:p-8">
-        <h1 className="font-display text-2xl font-semibold text-dark dark:text-white sm:text-3xl">Aniwoo Admin Portal</h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 sm:text-base">
-          Manage users, publish shop products, and operate core platform workflows from one place.
-        </p>
-
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total users</p>
-            <p className="mt-1 text-2xl font-semibold text-dark dark:text-white">{users.length}</p>
-          </article>
-          <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Admins</p>
-            <p className="mt-1 text-2xl font-semibold text-dark dark:text-white">{roleStats.admin}</p>
-          </article>
-          <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Veterinarians</p>
-            <p className="mt-1 text-2xl font-semibold text-dark dark:text-white">{roleStats.vet}</p>
-          </article>
-          <article className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Pet owners</p>
-            <p className="mt-1 text-2xl font-semibold text-dark dark:text-white">{roleStats.petOwner}</p>
-          </article>
-        </div>
-
-        {error && (
-          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-            {error}
+    <main className="mx-auto flex min-h-[85vh] max-w-7xl flex-col lg:flex-row px-4 py-8 sm:px-6 lg:px-8 gap-8">
+      {/* Sidebar Navigation */}
+      <aside className="w-full lg:w-64 flex-shrink-0">
+        <div className="lg:sticky lg:top-24 glass-card p-4">
+          <div className="px-3 pb-4 mb-2 border-b border-slate-100 dark:border-slate-800">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Admin Portal</h2>
           </div>
-        )}
-      </section>
-
-      <section className="mt-8 grid gap-8 lg:grid-cols-[1fr,1.15fr]">
-        <article className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
-          <h2 className="font-display text-xl font-semibold text-dark dark:text-white">Create Product</h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Products added here appear automatically in the shop.</p>
-
-          <form onSubmit={handleCreateProduct} className="mt-5 space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Product name</label>
-              <input
-                id="name"
-                value={form.name}
-                onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
-                placeholder="Healthy Puppy Kibble"
-              />
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label htmlFor="price" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Price (INR)</label>
-                <input
-                  id="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.price}
-                  onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
-                  placeholder="899"
-                />
-              </div>
-              <div>
-                <label htmlFor="category" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Category</label>
-                <input
-                  id="category"
-                  value={form.category}
-                  onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
-                  className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
-                  placeholder="Food"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="productImages" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Product photos</label>
-              <input
-                id="productImages"
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
-              />
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Upload one or more product images (max 10 files, 5MB each).</p>
-
-              {uploadingImages && (
-                <p className="mt-2 text-xs font-semibold text-primary">Uploading images...</p>
-              )}
-
-              {form.image_urls.length > 0 && (
-                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                  {form.image_urls.map((url) => (
-                    <div key={url} className="group relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                      <img src={url} alt="Product preview" className="h-24 w-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removeFormImage(url)}
-                        className="absolute right-1 top-1 rounded-full bg-white/95 dark:bg-slate-900/95 px-2 py-0.5 text-[11px] font-semibold text-red-600 shadow"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="description" className="block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Description</label>
-              <textarea
-                id="description"
-                rows={3}
-                value={form.description}
-                onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-2"
-                placeholder="High-protein, vet-approved nutrition for growing puppies."
-              />
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                <input
-                  type="checkbox"
-                  checked={form.in_stock}
-                  onChange={(e) => setForm((prev) => ({ ...prev, in_stock: e.target.checked }))}
-                />
-                In stock
-              </label>
-              <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                <input
-                  type="checkbox"
-                  checked={form.is_active}
-                  onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.checked }))}
-                />
-                Active in shop
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300"
+          <nav className="space-y-1">
+            <button 
+              onClick={() => setActiveTab('dashboard')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === 'dashboard' 
+                  ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white'
+              }`}
             >
-              {submitting ? 'Saving...' : 'Add Product'}
+              <LayoutDashboard className="w-4 h-4" /> Dashboard
             </button>
-          </form>
-        </article>
+            <button 
+              onClick={() => setActiveTab('products')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === 'products' 
+                  ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Package className="w-4 h-4" /> Products
+            </button>
+            <button 
+              onClick={() => setActiveTab('users')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === 'users' 
+                  ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Users className="w-4 h-4" /> Users
+            </button>
+          </nav>
+        </div>
+      </aside>
 
-        <article className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
-          <h2 className="font-display text-xl font-semibold text-dark dark:text-white">Products</h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Toggle availability or remove outdated items.</p>
-
-          {productsLoading ? (
-            <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">Loading products...</p>
-          ) : products.length === 0 ? (
-            <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">No products yet. Add your first product using the form.</p>
-          ) : (
-            <ul className="mt-5 space-y-3">
-              {products.map((product) => (
-                <li key={product.id} className="rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-base font-semibold text-dark dark:text-white">{product.name}</h3>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        {product.category || 'General'} | INR {Number(product.price || 0).toFixed(2)}
-                      </p>
-                      {product.image_urls.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {product.image_urls.slice(0, 4).map((url) => (
-                            <img
-                              key={url}
-                              src={url}
-                              alt={`${product.name} thumbnail`}
-                              className="h-12 w-12 rounded-lg border border-slate-200 dark:border-slate-700 object-cover"
-                            />
-                          ))}
-                          {product.image_urls.length > 4 && (
-                            <span className="inline-flex h-12 items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                              +{product.image_urls.length - 4}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                      {product.description && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{product.description}</p>}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => toggleProductStatus(product.id, 'in_stock', product.in_stock)}
-                        className="rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary"
-                      >
-                        {product.in_stock ? 'Mark Out of Stock' : 'Mark In Stock'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toggleProductStatus(product.id, 'is_active', product.is_active)}
-                        className="rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary"
-                      >
-                        {product.is_active ? 'Hide from Shop' : 'Show in Shop'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteProduct(product.id)}
-                        className="rounded-full border border-red-200 px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </article>
-      </section>
-
-      <section className="mt-8 rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800">
-        <h2 className="font-display text-xl font-semibold text-dark dark:text-white">Users</h2>
-        {usersLoading ? (
-          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Loading users...</p>
-        ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-700 text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  <th className="py-2 pr-3">Name</th>
-                  <th className="py-2 pr-3">Email</th>
-                  <th className="py-2 pr-3">Role</th>
-                  <th className="py-2 pr-3">Joined</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((entry) => (
-                  <tr key={entry.id} className="border-b border-slate-100 dark:border-slate-800">
-                    <td className="py-2 pr-3 font-medium text-dark dark:text-white">{entry.name || 'Unnamed user'}</td>
-                    <td className="py-2 pr-3 text-slate-700 dark:text-slate-200">{entry.email}</td>
-                    <td className="py-2 pr-3">
-                      <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                        {entry.role || 'unknown'}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-3 text-slate-600 dark:text-slate-300">
-                      {entry.created_at ? new Date(entry.created_at).toLocaleDateString() : '-'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0 pb-12">
+        {error && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 rounded-2xl border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-400 flex items-start shadow-sm">
+            <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
+            <p className="pt-0.5">{error}</p>
+          </motion.div>
         )}
-      </section>
+        
+        <AnimatePresence mode="wait">
+          {activeTab === 'dashboard' && <motion.div key="dashboard">{renderDashboard()}</motion.div>}
+          {activeTab === 'products' && <motion.div key="products">{renderProducts()}</motion.div>}
+          {activeTab === 'users' && <motion.div key="users">{renderUsers()}</motion.div>}
+        </AnimatePresence>
+      </div>
     </main>
   );
 }
