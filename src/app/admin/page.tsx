@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, Package, Users, Plus, Image as ImageIcon, 
   Trash2, X, Shield, User, HeartPulse, ShoppingBag, IndianRupee,
-  MoreVertical, CheckCircle2, AlertCircle, Edit, ArrowRight, XCircle
+  MoreVertical, CheckCircle2, AlertCircle, Edit, ArrowRight, XCircle, Eye, EyeOff
 } from 'lucide-react';
 
 type AdminUser = {
@@ -69,7 +69,7 @@ export default function AdminPortalPage() {
 
   const loadUsers = async () => {
     setUsersLoading(true);
-    const response = await fetch('/api/admin/users', { credentials: 'include' });
+    const response = await fetch('/api/admin/users', { credentials: 'include', cache: 'no-store' });
     const payload = await response.json();
 
     if (!response.ok) {
@@ -82,7 +82,7 @@ export default function AdminPortalPage() {
 
   const loadProducts = async () => {
     setProductsLoading(true);
-    const response = await fetch('/api/admin/products', { credentials: 'include' });
+    const response = await fetch('/api/admin/products', { credentials: 'include', cache: 'no-store' });
     const payload = await response.json();
 
     if (!response.ok) {

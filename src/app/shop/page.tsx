@@ -25,7 +25,7 @@ export default function Shop() {
     const loadProducts = async () => {
       try {
         setError(null);
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products', { cache: 'no-store' });
         const payload = await response.json();
 
         if (!response.ok) {
