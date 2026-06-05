@@ -51,7 +51,7 @@ const encodeImageUrls = (imageUrls: string[]): string | null => {
   return JSON.stringify(imageUrls)
 }
 
-const mapVetRecord = (record: any) => {
+const mapVetRecord = (record: Record<string, unknown>) => {
   const clinicImageUrls = normalizeImageUrls(record?.clinic_image_url)
   return {
     ...record,
@@ -65,24 +65,18 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 const SESSION_SECRET = process.env.ANIWOO_SESSION_SECRET || ''
 
-let supabaseAdmin: any = null
-let supabasePublic: any = null
+let supabaseAdmin: ReturnType<typeof createClient> | null = null
+let supabasePublic: ReturnType<typeof createClient> | null = null
 
 if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
   supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+    auth: { autoRefreshToken: false, persistSession: false }
   })
 }
 
 if (SUPABASE_URL && SUPABASE_ANON_KEY) {
   supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+    auth: { autoRefreshToken: false, persistSession: false }
   })
 }
 
@@ -127,9 +121,11 @@ function readSessionFromCookie(request: NextRequest): SessionPayload | null {
 }
 
 export async function GET(request: NextRequest) {
-  // Check if requesting all vets (public endpoint)
   const getAllVets = request.nextUrl.searchParams.get('getAll')
-  
+  const pincodeParam = request.nextUrl.searchParams.get('pincode')
+  const cityParam = request.nextUrl.searchParams.get('city')
+  const searchParam = request.nextUrl.searchParams.get('search')
+
   if (getAllVets === 'true') {
     const publicClient = supabaseAdmin ?? supabasePublic
 
@@ -137,23 +133,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Supabase public configuration missing' }, { status: 500 })
     }
 
-    // Public endpoint - no authentication required
-    const { data, error } = await publicClient
-      .from('vets')
-      .select('*')
-      .order('created_at', { ascending: false })
+    // Build filtered query at the database level
+    let query = publicClient.from('vets').select('*').order('created_at', { ascending: false })
+
+    if (pincodeParam) {
+      query = query.eq('pincode', pincodeParam)
+    } else if (cityParam) {
+      query = query.ilike('city', `%${cityParam}%`)
+    } else if (searchParam) {
+      query = query.or(
+        `city.ilike.%${searchParam}%,location.ilike.%${searchParam}%,clinic_name.ilike.%${searchParam}%,specialization.ilike.%${searchParam}%`
+      )
+    }
+
+    const { data, error } = await query
 
     if (error) {
       console.error('[GET /api/vets] Error fetching all vets:', error)
       return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
     }
 
-    // Get profiles for all vets
     if (data && data.length > 0) {
       let profilesData: Array<{ id: string; name: string | null; email: string | null }> | null = null
 
       if (supabaseAdmin) {
-        const userIds = data.map((vet: any) => vet.user_id)
+        const userIds = data.map((vet: Record<string, string>) => vet.user_id)
         const { data: fetchedProfiles, error: profilesError } = await supabaseAdmin
           .from('profiles')
           .select('id, name, email')
@@ -166,8 +170,8 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      const vetsWithProfiles = data.map((vet: any) => {
-        const profile = profilesData?.find((p: any) => p.id === vet.user_id)
+      const vetsWithProfiles = data.map((vet: Record<string, unknown>) => {
+        const profile = profilesData?.find((p) => p.id === vet.user_id)
         return {
           ...mapVetRecord(vet),
           profiles: profile ? { name: profile.name, email: profile.email } : undefined
@@ -184,7 +188,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Server configuration missing: ANIWOO_SESSION_SECRET is required' }, { status: 500 })
   }
 
-  // Authenticated endpoint - get specific vet profile by userId
+  // Authenticated endpoint — get specific vet profile by userId
   const session = readSessionFromCookie(request)
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -205,7 +209,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
-  return NextResponse.json({ data: data ? mapVetRecord(data) : null })
+  return NextResponse.json({ data: data ? mapVetRecord(data as Record<string, unknown>) : null })
 }
 
 export async function POST(request: NextRequest) {
