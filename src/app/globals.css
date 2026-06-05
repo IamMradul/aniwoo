@@ -104,29 +104,38 @@ textarea {
 }
 
 /* Glass card */
-.glass-card {
+.glass-card, .premium-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 1.25rem;
   transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.glass-card:hover {
+.glass-card:hover, .premium-card:hover {
   border-color: rgba(255, 107, 53, 0.2);
 }
 
-.dark .glass-card {
+.dark .glass-card, .dark .premium-card {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
 
-.dark .glass-card:hover {
+.dark .glass-card:hover, .dark .premium-card:hover {
   box-shadow: 0 0 40px rgba(255, 107, 53, 0.08);
 }
 
 /* Light mode elevated card shadow */
-.glass-card:not(.dark .glass-card) {
+.glass-card:not(.dark .glass-card), .premium-card:not(.dark .premium-card) {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* Hero Background Gradients */
+.bg-gradient-hero {
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-primary) 100%);
+}
+
+.dark .bg-gradient-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #0a0f1a 100%);
 }
 
 /* ─── Existing Animations ─────────────────────────────────────────── */

@@ -103,7 +103,7 @@ function AnimatedWords({ text, className }: { text: string; className?: string }
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const HeroSection = () => {
   return (
-    <section className="relative flex min-h-[93vh] items-start justify-center overflow-hidden bg-dark text-white pt-20 sm:pt-24 md:pt-32">
+    <section className="relative flex min-h-[93vh] items-start justify-center overflow-hidden bg-gradient-hero text-white pt-20 sm:pt-24 md:pt-32">
       <video
         data-animate="hero-video"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover object-top"
@@ -118,8 +118,8 @@ const HeroSection = () => {
       >
         <source src="https://nysvcajjiqpqteuxxkmd.supabase.co/storage/v1/object/public/Hero%20video/aniwoo-hero.mp4" type="video/mp4" />
       </video>
-      {/* Stronger cinematic overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90" />
+      {/* Stronger cinematic overlay for contrast on both themes */}
+      <div className="absolute inset-0 bg-gradient-to-b from-dark/70 via-dark/50 to-dark/90 dark:from-black/80 dark:via-black/60 dark:to-black/90" />
       {/* Warm ambient glow behind content */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-primary/10 blur-[150px] pointer-events-none" />
 
@@ -134,7 +134,7 @@ const HeroSection = () => {
         </p>
 
         {/* Hero headline — larger, bolder */}
-        <h1 className="font-display text-5xl font-bold leading-[1.1] sm:text-6xl lg:text-7xl">
+        <h1 className="font-display text-5xl font-bold leading-[1.1] text-white sm:text-6xl lg:text-7xl">
           <AnimatedWords text="Complete Pet Care" />
           <br className="hidden sm:block" />
           <AnimatedWords text="Solutions" />
@@ -144,8 +144,8 @@ const HeroSection = () => {
         </h1>
 
         <p
-          data-animate="hero-subtitle"
-          className="mt-6 max-w-2xl text-base text-white/60 sm:text-lg lg:text-xl leading-relaxed"
+          data-animate="hero-sub"
+          className="mt-6 max-w-2xl text-base font-medium text-slate-100 sm:text-lg lg:text-xl leading-relaxed"
         >
           From nutrition to grooming, vet services to AI health checks — Aniwoo brings everything your pet needs into one smart, loving platform.
         </p>
@@ -529,8 +529,7 @@ const CtaBanner = () => {
         <div className="flex flex-wrap justify-center gap-4">
           <Link
             href="/shop"
-            data-animate="cta-button"
-            className="group inline-flex items-center justify-center rounded-full bg-white dark:bg-slate-900 px-8 py-3.5 text-sm font-semibold text-dark dark:text-white shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl"
+            className="group inline-flex items-center justify-center rounded-full bg-white dark:bg-slate-900 px-8 py-3.5 text-sm font-semibold text-primary shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl"
           >
             Get Started with Aniwoo
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

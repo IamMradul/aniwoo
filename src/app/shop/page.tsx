@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { FadeInSection, FadeInItem } from '@/components/common/FadeInSection';
 
 type Product = {
@@ -97,14 +98,16 @@ export default function Shop() {
         <FadeInSection staggerChildren={0.1} className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <FadeInItem key={product.id}>
-              <article className="glass-card overflow-hidden transition-all duration-300">
-                {(selectedImages[product.id] || product.image_url) ? (
-                  <img src={selectedImages[product.id] || product.image_url || ''} alt={product.name} className="h-44 w-full object-cover" />
-                ) : (
-                  <div className="flex h-44 w-full items-center justify-center bg-slate-100 dark:bg-slate-800 text-sm text-slate-500 dark:text-slate-400">
-                    No image available
-                  </div>
-                )}
+              <article className="glass-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:ring-1 hover:ring-primary/50">
+                <Link href={`/shop/${product.id}`} className="block">
+                  {(selectedImages[product.id] || product.image_url) ? (
+                    <img src={selectedImages[product.id] || product.image_url || ''} alt={product.name} className="h-44 w-full object-cover" />
+                  ) : (
+                    <div className="flex h-44 w-full items-center justify-center bg-slate-100 dark:bg-slate-800 text-sm text-slate-500 dark:text-slate-400">
+                      No image available
+                    </div>
+                  )}
+                </Link>
                 <div className="p-4">
                   {product.image_urls.length > 1 && (
                     <div className="mb-3 flex flex-wrap gap-2">
@@ -112,7 +115,10 @@ export default function Shop() {
                         <button
                           key={url}
                           type="button"
-                          onClick={() => setSelectedImages((prev) => ({ ...prev, [product.id]: url }))}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setSelectedImages((prev) => ({ ...prev, [product.id]: url }));
+                          }}
                           className={`overflow-hidden rounded-lg border ${
                             (selectedImages[product.id] || product.image_url) === url ? 'border-primary' : 'border-slate-200 dark:border-slate-700'
                           }`}
@@ -123,9 +129,11 @@ export default function Shop() {
                       ))}
                     </div>
                   )}
-                  <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{product.category || 'General'}</p>
-                  <h2 className="mt-1 text-lg font-semibold text-dark dark:text-white">{product.name}</h2>
-                  {product.description && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 line-clamp-3">{product.description}</p>}
+                  <Link href={`/shop/${product.id}`} className="block group">
+                    <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{product.category || 'General'}</p>
+                    <h2 className="mt-1 text-lg font-semibold text-dark dark:text-white group-hover:text-primary transition-colors">{product.name}</h2>
+                    {product.description && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 line-clamp-3">{product.description}</p>}
+                  </Link>
                   <div className="mt-4 flex items-center justify-between">
                     <p className="text-base font-semibold text-dark dark:text-white">INR {Number(product.price || 0).toFixed(2)}</p>
                     <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${product.in_stock ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>

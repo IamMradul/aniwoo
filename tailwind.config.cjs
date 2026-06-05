@@ -9,11 +9,25 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#FF6B35',
+        primary: {
+          DEFAULT: '#FF6B35',
+          50: '#fff0eb',
+          100: '#ffd6c7',
+          200: '#ffbca3',
+          300: '#ffa27f',
+          400: '#ff885b',
+          500: '#ff6b35',
+          600: '#e65a29',
+          700: '#cc4a1d',
+          800: '#b33a11',
+          900: '#992a05',
+        },
         secondary: '#4ECDC4',
         accent: '#FFE66D',
         dark: '#2C3E50',
-        light: '#F7F9FB'
+        light: '#F7F9FB',
+        surface: 'var(--card-bg)',
+        'surface-elevated': 'var(--header-bg)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
