@@ -254,7 +254,8 @@ export async function POST(request: NextRequest) {
     updated_at: new Date().toISOString()
   }
 
-  const { error } = await supabaseAdmin.from('vets').upsert(payload, {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabaseAdmin as any).from('vets').upsert(payload, {
     onConflict: 'user_id'
   })
 
