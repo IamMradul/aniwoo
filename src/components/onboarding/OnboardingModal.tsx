@@ -7,13 +7,11 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { MapPin, ChevronRight, ChevronLeft, X } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
-type Step = 1 | 2 | 3 | 4;
-type RoleChoice = 'pet_owner' | 'vet';
+type Step = 1 | 2 | 3;
 
 const SPECIES_OPTIONS = ['Dog', 'Cat', 'Rabbit', 'Bird', 'Fish', 'Other'];
 
 interface OnboardingState {
-  role: RoleChoice;
   // Pet owner location
   city: string;
   state: string;
@@ -37,7 +35,6 @@ interface OnboardingState {
 }
 
 const DEFAULT_STATE: OnboardingState = {
-  role: 'pet_owner',
   city: '', state: '', pincode: '', address: '', latitude: undefined, longitude: undefined,
   clinic_name: '', clinic_address: '', clinic_city: '', clinic_state: '', clinic_pincode: '', years_of_experience: '',
   petName: '', petSpecies: 'Dog', petBreed: '', petAge: '', petGender: 'Male',
@@ -61,14 +58,14 @@ export default function OnboardingModal() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !user || !user.role) return;
 
     // Check if user has already done onboarding this session
     try {
       if (sessionStorage.getItem(ONBOARDING_KEY)) return;
     } catch { /* ignore */ }
 
-    // Check if new user (profile_completed = false AND recent signup)
+    // Check if new user (profile_completed = false)
     const checkNewUser = async () => {
       try {
         const response = await fetch('/api/profile', { credentials: 'include', cache: 'no-store' });
@@ -80,8 +77,6 @@ export default function OnboardingModal() {
         const isNew = profile.profile_completed === false;
         if (!isNew) return;
 
-        // Only show if the profile was created in the last 5 minutes
-        // We rely on profile.created_at if available, otherwise show for brand-new profiles
         setVisible(true);
       } catch { /* ignore */ }
     };
@@ -94,7 +89,9 @@ export default function OnboardingModal() {
     setVisible(false);
   };
 
-  const handleLocationFill = async (isClinic: boolean) => {
+  const isVet = user?.role === 'vet';
+
+  const handleLocationFill = async () => {
     if (!navigator.geolocation) return;
     setLocationLoading(true);
     navigator.geolocation.getCurrentPosition(
@@ -112,7 +109,7 @@ export default function OnboardingModal() {
           const pincode = addr?.postcode || '';
           const fullAddress = data?.display_name || '';
 
-          if (isClinic) {
+          if (isVet) {
             setState((p) => ({ ...p, clinic_city: city, clinic_state: stateVal, clinic_pincode: pincode, clinic_address: fullAddress }));
           } else {
             setState((p) => ({ ...p, city, state: stateVal, pincode, address: fullAddress, latitude, longitude }));
@@ -125,10 +122,10 @@ export default function OnboardingModal() {
     );
   };
 
-  const saveStep2 = async () => {
+  const saveLocation = async () => {
     setSaving(true);
     try {
-      const body = state.role === 'pet_owner'
+      const body = !isVet
         ? { address: state.address, city: state.city, state: state.state, pincode: state.pincode, latitude: state.latitude, longitude: state.longitude }
         : { clinic_name: state.clinic_name, clinic_address: state.clinic_address, clinic_city: state.clinic_city, clinic_state: state.clinic_state, clinic_pincode: state.clinic_pincode, years_of_experience: state.years_of_experience ? Number(state.years_of_experience) : undefined };
 
@@ -143,8 +140,8 @@ export default function OnboardingModal() {
     }
   };
 
-  const saveStep3Pet = async () => {
-    if (!state.petName.trim()) return;
+  const savePet = async () => {
+    if (!state.petName.trim() || isVet) return;
     setSaving(true);
     try {
       const pet = {
@@ -178,34 +175,54 @@ export default function OnboardingModal() {
   };
 
   const goNext = async () => {
-    if (step === 1) {
-      // Save role selection
-      setSaving(true);
-      try {
-        // We update via supabase directly (role change through profile)
-        // For now, just proceed — role was set at signup
-      } finally { setSaving(false); }
-    }
     if (step === 2) {
-      await saveStep2();
+      await saveLocation();
     }
-    if (step === 3) {
-      await saveStep3Pet();
-    }
+    
     setDirection(1);
-    if (step === 3) {
-      setStep(4);
-      // Fire confetti on step 4
-      if (!confettiFired.current) {
-        confettiFired.current = true;
-        setTimeout(() => {
-          confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } });
-        }, 300);
+
+    if (step === 1) {
+      setStep(2);
+    } else if (step === 2) {
+      if (isVet) {
+        // Vets skip pet setup
+        setStep(3);
+        fireConfetti();
+      } else {
+        setStep(3);
       }
-    } else if (step < 4) {
-      setStep((s) => (s + 1) as Step);
+    } else if (step === 3) {
+      // Step 3 is Pet Setup for Pet Owners, or Done for Vets (which wouldn't have a continue button, just "Explore")
+      if (!isVet) {
+        await savePet();
+        fireConfetti();
+        // Since we want to show a success screen, we can just hide the modal and maybe we need a step 4?
+        // Let's add a step 4 for the final success screen for pet owners, but step 3 for vets is the success screen.
+        // Wait, the prompt says:
+        // - Welcome screen
+        // - Location setup
+        // - Add first pet (pet owners only)
+        // - Done screen with confetti
+        // That means we need Step 4 for pet owners.
+      }
     }
   };
+
+  const fireConfetti = () => {
+    if (!confettiFired.current) {
+      confettiFired.current = true;
+      setTimeout(() => {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } });
+      }, 300);
+    }
+  };
+
+  const goNextPetOwnerFinal = async () => {
+    await savePet();
+    setDirection(1);
+    setStep(4 as any);
+    fireConfetti();
+  }
 
   const goBack = () => {
     setDirection(-1);
@@ -218,11 +235,10 @@ export default function OnboardingModal() {
     exit: (d: number) => ({ x: d > 0 ? -80 : 80, opacity: 0 }),
   };
 
-  if (!mounted || !visible) return null;
+  if (!mounted || !visible || !user) return null;
 
-  const totalSteps = state.role === 'pet_owner' ? 4 : 3;
-  // For vets: steps 1, 2, 4 (no pet step)
-  const displayStep = state.role === 'vet' && step === 4 ? 3 : step;
+  const totalSteps = isVet ? 3 : 4;
+  const displayStep = step as number;
 
   const content = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -247,29 +263,18 @@ export default function OnboardingModal() {
 
         <div className="p-8 min-h-[420px] flex flex-col">
           <AnimatePresence mode="wait" custom={direction}>
-            {/* ── Step 1: Role Selection ── */}
+            {/* ── Step 1: Welcome ── */}
             {step === 1 && (
-              <motion.div key="step1" custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="flex-1 flex flex-col">
-                <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">Welcome to Aniwoo! 🐾</h2>
-                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Tell us who you are so we can personalize your experience.</p>
-                <div className="mt-8 grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setState((p) => ({ ...p, role: 'pet_owner' }))}
-                    className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-6 text-center transition ${state.role === 'pet_owner' ? 'border-primary bg-primary/5' : 'border-slate-200 dark:border-slate-700 hover:border-primary/50'}`}
-                  >
-                    <span className="text-4xl">🐶</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">Pet Owner</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">Find vets, shop for your pets</span>
-                  </button>
-                  <button
-                    onClick={() => setState((p) => ({ ...p, role: 'vet' }))}
-                    className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-6 text-center transition ${state.role === 'vet' ? 'border-primary bg-primary/5' : 'border-slate-200 dark:border-slate-700 hover:border-primary/50'}`}
-                  >
-                    <span className="text-4xl">🩺</span>
-                    <span className="font-semibold text-slate-900 dark:text-white">Veterinarian</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">List your clinic, manage bookings</span>
-                  </button>
-                </div>
+              <motion.div key="step1" custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="flex-1 flex flex-col items-center justify-center text-center">
+                <div className="text-6xl mb-6">{isVet ? '🩺' : '🐶'}</div>
+                <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">
+                  Welcome, {isVet ? 'Dr. ' + (user.name || 'Veterinarian') : (user.name || 'Pet Parent')}!
+                </h2>
+                <p className="mt-4 text-sm text-slate-600 dark:text-slate-300 max-w-xs mx-auto">
+                  {isVet 
+                    ? "Let's set up your clinic profile so pet owners can find you and book appointments."
+                    : "Let's personalize your experience to help you find the best care for your furry family."}
+                </p>
               </motion.div>
             )}
 
@@ -277,15 +282,15 @@ export default function OnboardingModal() {
             {step === 2 && (
               <motion.div key="step2" custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="flex-1 flex flex-col">
                 <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">
-                  {state.role === 'pet_owner' ? '📍 Where are you located?' : '🏥 About Your Clinic'}
+                  {!isVet ? '📍 Where are you located?' : '🏥 About Your Clinic'}
                 </h2>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                  {state.role === 'pet_owner' ? 'Helps us find nearby vets for you.' : 'Help pet owners find your clinic.'}
+                  {!isVet ? 'Helps us find nearby vets for you.' : 'Help pet owners find your clinic.'}
                 </p>
 
                 <button
                   type="button"
-                  onClick={() => handleLocationFill(state.role === 'vet')}
+                  onClick={handleLocationFill}
                   disabled={locationLoading}
                   className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/10 transition disabled:opacity-50 self-start"
                 >
@@ -294,7 +299,7 @@ export default function OnboardingModal() {
                 </button>
 
                 <div className="mt-4 grid gap-3">
-                  {state.role === 'pet_owner' ? (
+                  {!isVet ? (
                     <>
                       <input value={state.city} onChange={(e) => setState((p) => ({ ...p, city: e.target.value }))} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary text-slate-900 dark:text-white" placeholder="City" />
                       <div className="grid grid-cols-2 gap-3">
@@ -316,8 +321,8 @@ export default function OnboardingModal() {
               </motion.div>
             )}
 
-            {/* ── Step 3: Add First Pet (pet owners only) / Done (vets) ── */}
-            {step === 3 && state.role === 'pet_owner' && (
+            {/* ── Step 3: Add First Pet (pet owners only) ── */}
+            {step === 3 && !isVet && (
               <motion.div key="step3" custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="flex-1 flex flex-col">
                 <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">Tell us about your pet! 🐾</h2>
                 <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Add your first pet (you can always add more later).</p>
@@ -337,24 +342,15 @@ export default function OnboardingModal() {
               </motion.div>
             )}
 
-            {/* ── Step 3 for Vets (goes straight to done) ── */}
-            {step === 3 && state.role === 'vet' && (
-              <motion.div key="step3vet" custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="flex-1 flex flex-col items-center justify-center text-center">
+            {/* ── Final Step: Done ── */}
+            {(displayStep === 4 || (displayStep === 3 && isVet)) && (
+              <motion.div key="done" custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="flex-1 flex flex-col items-center justify-center text-center">
                 <div className="text-6xl mb-6">🎉</div>
                 <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">You&apos;re all set!</h2>
                 <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 max-w-xs">
-                  Your clinic profile has been set up. Pet owners in your area will be able to find and book appointments with you.
-                </p>
-              </motion.div>
-            )}
-
-            {/* ── Step 4: Done (pet owners) ── */}
-            {step === 4 && (
-              <motion.div key="step4" custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3 }} className="flex-1 flex flex-col items-center justify-center text-center">
-                <div className="text-6xl mb-6">🎉</div>
-                <h2 className="font-display text-2xl font-bold text-slate-900 dark:text-white">You&apos;re all set!</h2>
-                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 max-w-xs">
-                  Welcome to Aniwoo! Find trusted vets near you, shop for your pets, and keep them healthy and happy.
+                  {isVet 
+                    ? 'Your clinic profile has been set up. Pet owners in your area will be able to find and book appointments with you.'
+                    : 'Welcome to Aniwoo! Find trusted vets near you, shop for your pets, and keep them healthy and happy.'}
                 </p>
               </motion.div>
             )}
@@ -363,7 +359,7 @@ export default function OnboardingModal() {
           {/* Navigation buttons */}
           <div className="mt-8 flex items-center justify-between gap-3">
             <div>
-              {step > 1 && step < 4 && !(step === 3 && state.role === 'vet') && (
+              {step > 1 && !(displayStep === 4 || (displayStep === 3 && isVet)) && (
                 <button onClick={goBack} className="flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:border-slate-400 transition">
                   <ChevronLeft className="h-4 w-4" /> Back
                 </button>
@@ -371,13 +367,13 @@ export default function OnboardingModal() {
             </div>
             <div className="flex items-center gap-3">
               {/* Skip for pet step */}
-              {step === 3 && state.role === 'pet_owner' && (
-                <button onClick={async () => { await markComplete(); setDirection(1); setStep(4); confetti({ particleCount: 120, spread: 70, origin: { y: 0.5 } }); }} className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition">
+              {step === 3 && !isVet && (
+                <button onClick={async () => { await markComplete(); setDirection(1); setStep(4 as any); fireConfetti(); }} className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition">
                   Skip for now
                 </button>
               )}
 
-              {(step === 4 || (step === 3 && state.role === 'vet')) ? (
+              {(displayStep === 4 || (displayStep === 3 && isVet)) ? (
                 <button
                   onClick={async () => { await markComplete(); handleClose(); }}
                   className="flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-primary/90 transition"
@@ -386,7 +382,7 @@ export default function OnboardingModal() {
                 </button>
               ) : (
                 <button
-                  onClick={goNext}
+                  onClick={step === 3 && !isVet ? goNextPetOwnerFinal : goNext}
                   disabled={saving}
                   className="flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-primary/90 disabled:opacity-70 transition"
                 >
