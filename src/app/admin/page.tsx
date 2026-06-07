@@ -30,6 +30,21 @@ type Product = {
   is_active: boolean;
 };
 
+type AdminOrder = {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  created_at: string;
+  user_id: string;
+  razorpay_order_id: string;
+  items: any[];
+  profiles?: {
+    name: string;
+    email: string;
+  } | null;
+};
+
 type ProductForm = {
   name: string;
   description: string;
