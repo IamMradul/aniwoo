@@ -6,32 +6,127 @@ import { Minus, Plus, Trash2, ArrowRight, IndianRupee, ShoppingBag } from 'lucid
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FadeInSection, FadeInItem } from '@/components/common/FadeInSection';
+import Script from 'next/script';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export default function CartPage() {
   const { state, updateQuantity, removeItem } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'failed'>('idle');
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [addressFormData, setAddressFormData] = useState({
+    name: '',
+    phone: '',
+    street: '',
+    city: '',
+    state: '',
+    pincode: ''
+  });
 
   const taxRate = 0.18; // 18% GST
   const subtotal = state.totalAmount;
   const tax = subtotal * taxRate;
   const total = subtotal + tax;
 
-  const handleCheckout = () => {
+  const handleCheckoutClick = () => {
+    setShowAddressModal(true);
+  };
+
+  const proceedToPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowAddressModal(false);
     setIsCheckingOut(true);
-    // Simulate a brief loading state before showing the "Coming Soon" modal
-    setTimeout(() => {
+    
+    try {
+      const res = await fetch('/api/payments/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: total,
+          currency: 'INR',
+          items: state.items,
+          deliveryAddress: addressFormData,
+        }),
+      });
+
+      const orderData = await res.json();
+
+      if (!res.ok) {
+        throw new Error(orderData.error || 'Failed to create order');
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: "Aniwoo",
+        description: "Secure Payment",
+        order_id: orderData.orderId,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch('/api/payments/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            if (verifyRes.ok) {
+              setPaymentStatus('success');
+              // Clear cart on success
+              state.items.forEach(item => removeItem(item.id));
+              setShowCheckoutModal(true);
+            } else {
+              setPaymentStatus('failed');
+              setShowCheckoutModal(true);
+            }
+          } catch (err) {
+            setPaymentStatus('failed');
+            setShowCheckoutModal(true);
+          }
+        },
+        prefill: {
+          name: addressFormData.name || "Guest User",
+          email: "guest@example.com",
+          contact: addressFormData.phone || "9999999999"
+        },
+        theme: {
+          color: "#0f172a" // Slate 900
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response: any){
+        setPaymentStatus('failed');
+        setShowCheckoutModal(true);
+      });
+      rzp.open();
+
+    } catch (error) {
+      console.error(error);
+      alert('Failed to initiate checkout. Please try again.');
+    } finally {
       setIsCheckingOut(false);
-      setShowCheckoutModal(true);
-    }, 600);
+    }
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 min-h-[80vh]">
-      <FadeInSection>
-        <h1 className="font-display text-3xl font-semibold text-slate-900 dark:text-white sm:text-4xl">
-          Shopping Cart
-        </h1>
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8 min-h-[80vh]">
+        <FadeInSection>
+          <h1 className="font-display text-3xl font-semibold text-slate-900 dark:text-white sm:text-4xl">
+            Shopping Cart
+          </h1>
         
         {state.items.length === 0 ? (
           <div className="mt-12 flex flex-col items-center justify-center rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 py-24 text-center glass-card">
@@ -152,7 +247,7 @@ export default function CartPage() {
 
                 <div className="mt-8">
                   <button
-                    onClick={handleCheckout}
+                    onClick={handleCheckoutClick}
                     disabled={isCheckingOut}
                     className="flex w-full items-center justify-center rounded-full bg-primary px-6 py-4 text-base font-semibold text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-primary/50 disabled:opacity-70 disabled:cursor-wait"
                   >
@@ -193,7 +288,75 @@ export default function CartPage() {
         )}
       </FadeInSection>
 
-      {/* Checkout "Coming Soon" Modal */}
+      {/* Address Form Modal */}
+      <AnimatePresence>
+        {showAddressModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={() => setShowAddressModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative z-50 w-full max-w-lg overflow-hidden rounded-3xl bg-white p-6 sm:p-8 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
+            >
+              <h3 className="font-display text-2xl font-bold text-slate-900 dark:text-white mb-6">Delivery Address</h3>
+              <form onSubmit={proceedToPayment} className="space-y-4 text-left">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
+                    <input required type="text" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-4 py-2.5 text-slate-900 dark:text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      value={addressFormData.name} onChange={(e) => setAddressFormData({...addressFormData, name: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone</label>
+                    <input required type="tel" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-4 py-2.5 text-slate-900 dark:text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      value={addressFormData.phone} onChange={(e) => setAddressFormData({...addressFormData, phone: e.target.value})} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Street Address</label>
+                  <input required type="text" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-4 py-2.5 text-slate-900 dark:text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    value={addressFormData.street} onChange={(e) => setAddressFormData({...addressFormData, street: e.target.value})} />
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2 col-span-1">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">City</label>
+                    <input required type="text" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-4 py-2.5 text-slate-900 dark:text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      value={addressFormData.city} onChange={(e) => setAddressFormData({...addressFormData, city: e.target.value})} />
+                  </div>
+                  <div className="space-y-2 col-span-1">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">State</label>
+                    <input required type="text" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-4 py-2.5 text-slate-900 dark:text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      value={addressFormData.state} onChange={(e) => setAddressFormData({...addressFormData, state: e.target.value})} />
+                  </div>
+                  <div className="space-y-2 col-span-1">
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">PIN Code</label>
+                    <input required type="text" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent px-4 py-2.5 text-slate-900 dark:text-white outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                      value={addressFormData.pincode} onChange={(e) => setAddressFormData({...addressFormData, pincode: e.target.value})} />
+                  </div>
+                </div>
+                
+                <div className="pt-4 flex gap-3">
+                  <button type="button" onClick={() => setShowAddressModal(false)} className="flex-1 rounded-full border border-slate-200 dark:border-slate-700 py-3 font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                    Cancel
+                  </button>
+                  <button type="submit" className="flex-1 rounded-full bg-primary py-3 font-semibold text-white hover:bg-primary/90 transition shadow-lg shadow-primary/20">
+                    Pay Now
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Checkout Status Modal */}
       <AnimatePresence>
         {showCheckoutModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0">
@@ -210,24 +373,29 @@ export default function CartPage() {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative z-50 w-full max-w-md overflow-hidden rounded-3xl bg-white p-8 text-center shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
             >
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <div className={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full ${paymentStatus === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
                 <ShoppingBag className="h-8 w-8" />
               </div>
-              <h3 className="font-display text-2xl font-bold text-slate-900 dark:text-white">Checkout Coming Soon</h3>
+              <h3 className="font-display text-2xl font-bold text-slate-900 dark:text-white">
+                {paymentStatus === 'success' ? 'Payment Successful!' : 'Payment Failed'}
+              </h3>
               <p className="mt-4 text-slate-600 dark:text-slate-300">
-                We are currently integrating our secure payment gateway. Checkout functionality will be available in the next update!
+                {paymentStatus === 'success' 
+                  ? 'Thank you for your order. We are processing it and will ship it out soon!' 
+                  : 'There was an issue processing your payment. Please try again.'}
               </p>
               <button
                 onClick={() => setShowCheckoutModal(false)}
                 className="mt-8 w-full rounded-full bg-slate-900 py-3 font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
               >
-                Got it, thanks!
+                {paymentStatus === 'success' ? 'Continue Shopping' : 'Close'}
               </button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
     </main>
+    </>
   );
 }
 
