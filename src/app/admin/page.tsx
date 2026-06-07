@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   LayoutDashboard, Package, Users, Plus, Image as ImageIcon, 
   Trash2, X, Shield, User, HeartPulse, ShoppingBag, IndianRupee,
-  MoreVertical, CheckCircle2, AlertCircle, Edit, ArrowRight, XCircle, Eye, EyeOff
+  MoreVertical, CheckCircle2, AlertCircle, Edit, ArrowRight, XCircle, Eye, EyeOff, ShoppingCart
 } from 'lucide-react';
 
 type AdminUser = {
@@ -54,15 +54,17 @@ export default function AdminPortalPage() {
   const { user, isAuthenticated } = useAuth();
   const [usersList, setUsersList] = useState<AdminUser[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [productsLoading, setProductsLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<ProductForm>(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   
   // UI State
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'users'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'users' | 'orders'>('dashboard');
   const [showProductForm, setShowProductForm] = useState(false);
 
   const isAdmin = user?.role === 'admin';
@@ -105,21 +107,37 @@ export default function AdminPortalPage() {
     setProductsLoading(false);
   };
 
+  const loadOrders = async () => {
+    setOrdersLoading(true);
+    try {
+      const response = await fetch('/api/admin/orders', { credentials: 'include', cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || 'Failed to fetch orders');
+      setOrders(payload.data || []);
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated || !isAdmin) {
       setUsersLoading(false);
       setProductsLoading(false);
+      setOrdersLoading(false);
       return;
     }
 
     const load = async () => {
       try {
         setError(null);
-        await Promise.all([loadUsers(), loadProducts()]);
+        await Promise.all([loadUsers(), loadProducts(), loadOrders()]);
       } catch (err: any) {
         setError(err.message || 'Failed to load admin data');
         setUsersLoading(false);
         setProductsLoading(false);
+        setOrdersLoading(false);
       }
     };
 
@@ -350,6 +368,10 @@ export default function AdminPortalPage() {
              <div className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Total Products</span>
                <span className="text-xl font-bold text-slate-900 dark:text-white">{products.length}</span>
+             </div>
+             <div className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+               <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Total Orders</span>
+               <span className="text-xl font-bold text-slate-900 dark:text-white">{orders.length}</span>
              </div>
              <div className="flex justify-between items-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Out of Stock</span>
@@ -711,6 +733,84 @@ export default function AdminPortalPage() {
     </motion.div>
   );
 
+  const renderOrders = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="space-y-6"
+    >
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Platform Orders</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">View all customer orders and their status.</p>
+        </div>
+      </div>
+
+      <div className="glass-card overflow-hidden">
+        {ordersLoading ? (
+          <div className="py-12 text-center text-slate-500">Loading orders...</div>
+        ) : orders.length === 0 ? (
+          <div className="py-12 text-center text-slate-500 dark:text-slate-400">
+            <ShoppingCart className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600 mb-4" />
+            <p>No orders found yet.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">
+                <tr>
+                  <th className="px-6 py-4">Order ID</th>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4">Amount</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Items</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                {orders.map((order) => {
+                  return (
+                    <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-6 py-4">
+                        <span className="font-mono text-xs text-slate-500 dark:text-slate-400" title={order.id}>
+                          {order.id.split('-')[0]}...
+                        </span>
+                        <div className="text-xs text-slate-400 mt-0.5">RP: {order.razorpay_order_id}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-slate-900 dark:text-white">{order.profiles?.name || 'Guest User'}</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">{order.profiles?.email || 'N/A'}</div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                        <IndianRupee className="inline w-3 h-3 -mt-0.5 mr-0.5" />{order.amount.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          order.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300 border border-green-200 dark:border-green-500/30' :
+                          order.status === 'created' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30' :
+                          'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                        }`}>
+                          {order.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
+                        {order.items?.length || 0} items
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+
   // --- Main Layout Render ---
 
   if (!isAuthenticated) {
@@ -782,6 +882,16 @@ export default function AdminPortalPage() {
             >
               <Users className="w-4 h-4" /> Users
             </button>
+            <button 
+              onClick={() => setActiveTab('orders')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                activeTab === 'orders' 
+                  ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <ShoppingCart className="w-4 h-4" /> Orders
+            </button>
           </nav>
         </div>
       </aside>
@@ -799,6 +909,7 @@ export default function AdminPortalPage() {
           {activeTab === 'dashboard' && <motion.div key="dashboard">{renderDashboard()}</motion.div>}
           {activeTab === 'products' && <motion.div key="products">{renderProducts()}</motion.div>}
           {activeTab === 'users' && <motion.div key="users">{renderUsers()}</motion.div>}
+          {activeTab === 'orders' && <motion.div key="orders">{renderOrders()}</motion.div>}
         </AnimatePresence>
       </div>
     </main>
