@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -240,14 +241,16 @@ export default function Vets() {
         {/* Clinic Image Cover */}
         <div className="relative h-48 w-full bg-slate-100 dark:bg-slate-800">
           {vet.clinic_image_url ? (
-            <Image
-              src={vet.clinic_image_url}
-              alt={vet.clinic_name}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover"
-              loading="lazy"
-            />
+            <Link href={`/vets/${vet.id}`}>
+              <Image
+                src={vet.clinic_image_url}
+                alt={vet.clinic_name}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover transition-transform duration-300 hover:scale-105"
+                loading="lazy"
+              />
+            </Link>
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-50 dark:from-slate-800 to-white dark:to-slate-900 text-slate-300 dark:text-slate-600">
               <Building2 className="h-12 w-12 opacity-50" />
@@ -289,8 +292,10 @@ export default function Vets() {
 
         <div className="p-6 flex-1 flex flex-col">
           <div className="mb-4 flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold text-dark dark:text-white line-clamp-1">{vet.clinic_name}</h3>
+            <div className="flex-1">
+              <Link href={`/vets/${vet.id}`} className="font-semibold text-lg text-dark dark:text-white line-clamp-1 hover:text-primary hover:underline">
+                {vet.clinic_name}
+              </Link>
               {vet.profiles && (
                 <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Dr. {vet.profiles.name}</p>
               )}
@@ -329,7 +334,13 @@ export default function Vets() {
             {vet.bio && <p className="line-clamp-2 text-xs text-slate-600 dark:text-slate-300">{vet.bio}</p>}
           </div>
 
-          <div className="mt-auto pt-4">
+          <div className="mt-auto pt-4 flex gap-3">
+            <Link
+              href={`/vets/${vet.id}`}
+              className="flex-1 text-center rounded-full border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary hover:text-white"
+            >
+              View Profile
+            </Link>
             <button
               onClick={() => {
                 if (!isAuthenticated) {
@@ -338,9 +349,9 @@ export default function Vets() {
                   setBookingVet(vet);
                 }
               }}
-              className="w-full rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+              className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
             >
-              Book Appointment
+              Book Now
             </button>
           </div>
         </div>
