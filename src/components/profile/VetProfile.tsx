@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Calendar, Clock, PawPrint, Bell, Settings, Heart, FileText, Download, UserPlus, ChevronRight, Building2, Award, Save, Image as ImageIcon, IndianRupee, Phone, Stethoscope } from 'lucide-react';
+import { Calendar, Clock, PawPrint, Bell, Settings, Heart, FileText, Download, UserPlus, ChevronRight, Building2, Award, Save, Image as ImageIcon, IndianRupee, Phone, Stethoscope, Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,6 +29,8 @@ type TabType = 'appointments' | 'patients' | 'partners' | 'reports' | 'settings'
 export function VetProfile({ user }: { user: any }) {
     const [activeTab, setActiveTab] = useState<TabType>('appointments');
     const [bookings, setBookings] = useState<any[]>([]);
+    const [patients, setPatients] = useState<any[]>([]);
+    const [partners, setPartners] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState<string | null>(null);
     const [rescheduleData, setRescheduleData] = useState<{ id: string | null, date: string, time: string, note: string }>({ id: null, date: '', time: '', note: '' });
@@ -37,6 +39,11 @@ export function VetProfile({ user }: { user: any }) {
     const [uploadingClinicImages, setUploadingClinicImages] = useState(false);
     const [clinicImageUrls, setClinicImageUrls] = useState<string[]>([]);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+    // Patient form state
+    const [showAddPatient, setShowAddPatient] = useState(false);
+    const [isAddingPatient, setIsAddingPatient] = useState(false);
+    const [newPatient, setNewPatient] = useState<{ name: string, species: string, breed: string, age_years: string, health_notes: string, report_file: File | null }>({ name: '', species: '', breed: '', age_years: '', health_notes: '', report_file: null });
 
     const {
         register,
@@ -197,6 +204,37 @@ export function VetProfile({ user }: { user: any }) {
         }
     };
 
+    const handleAddPatient = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsAddingPatient(true);
+        try {
+            const formData = new FormData();
+            formData.append('name', newPatient.name);
+            formData.append('species', newPatient.species);
+            if (newPatient.breed) formData.append('breed', newPatient.breed);
+            if (newPatient.age_years) formData.append('age_years', newPatient.age_years);
+            if (newPatient.health_notes) formData.append('health_notes', newPatient.health_notes);
+            if (newPatient.report_file) formData.append('report', newPatient.report_file);
+
+            const res = await fetch('/api/pets', {
+                method: 'POST',
+                body: formData
+            });
+
+            const payload = await res.json();
+            if (!res.ok) throw new Error(payload.error || 'Failed to add patient');
+
+            setPatients([payload.data, ...patients]);
+            setShowAddPatient(false);
+            setNewPatient({ name: '', species: '', breed: '', age_years: '', health_notes: '', report_file: null });
+        } catch (err: any) {
+            console.error('Error adding patient:', err);
+            alert('Failed to add patient: ' + (err.message || 'Unknown error'));
+        } finally {
+            setIsAddingPatient(false);
+        }
+    };
+
     const removeClinicImage = (url: string) => {
         setClinicImageUrls((prev) => {
             const next = prev.filter((entry) => entry !== url);
@@ -207,20 +245,34 @@ export function VetProfile({ user }: { user: any }) {
     useEffect(() => {
         async function loadBookings() {
             try {
-                const response = await fetch('/api/bookings?role=vet', {
-                    method: 'GET',
-                    credentials: 'include'
-                });
+                const [bookingsRes, patientsRes, partnersRes] = await Promise.all([
+                    fetch('/api/bookings?role=vet', { method: 'GET', credentials: 'include' }),
+                    fetch('/api/vets/patients', { method: 'GET', credentials: 'include' }),
+                    fetch('/api/saved-vets', { method: 'GET', credentials: 'include' })
+                ]);
 
-                if (!response.ok) {
-                    const payload = await response.json().catch(() => ({}));
-                    throw new Error(payload?.error || 'Failed to load vet bookings');
+                if (!bookingsRes.ok) {
+                    console.error('Failed to load vet bookings:', await bookingsRes.text().catch(() => ''));
+                } else {
+                    const payload = await bookingsRes.json().catch(() => ({ data: [] }));
+                    setBookings(payload?.data || []);
                 }
 
-                const payload = await response.json().catch(() => ({ data: [] }));
-                setBookings(payload?.data || []);
+                if (!patientsRes.ok) {
+                    console.error('Failed to load patients:', await patientsRes.text().catch(() => ''));
+                } else {
+                    const payload = await patientsRes.json().catch(() => ({ data: [] }));
+                    setPatients(payload?.data || []);
+                }
+
+                if (!partnersRes.ok) {
+                    console.error('Failed to load partners:', await partnersRes.text().catch(() => ''));
+                } else {
+                    const payload = await partnersRes.json().catch(() => ({ data: [] }));
+                    setPartners(payload?.data || []);
+                }
             } catch (err) {
-                console.error('Error loading vet bookings:', err);
+                console.error('Error loading vet data:', err);
             } finally {
                 setLoading(false);
             }
@@ -378,54 +430,85 @@ export function VetProfile({ user }: { user: any }) {
         <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-dark dark:text-white">My Patients</h2>
-                <button className="flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80">
-                    <UserPlus className="h-4 w-4" />
-                    Add Patient Record
-                </button>
+                {!showAddPatient && (
+                    <button onClick={() => setShowAddPatient(true)} className="flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80">
+                        <UserPlus className="h-4 w-4" />
+                        Add Patient Record
+                    </button>
+                )}
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-                {/* Mock Patient 1 */}
-                <div className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md hover:ring-primary/20">
-                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 transition-transform group-hover:scale-150"></div>
-                    <div className="relative z-10 flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-primary">
-                                <PawPrint className="h-6 w-6" />
-                            </div>
-                            <div>
-                                <h3 className="font-display text-lg font-semibold text-dark dark:text-white">Max</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">German Shepherd • 5 Years</p>
-                            </div>
+            {showAddPatient && (
+                <form onSubmit={handleAddPatient} className="mb-6 rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
+                    <h3 className="mb-4 text-lg font-semibold text-dark dark:text-white">Add a New Patient</h3>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Name *</label>
+                            <input required type="text" value={newPatient.name} onChange={e => setNewPatient({ ...newPatient, name: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Max" />
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Species *</label>
+                            <input required type="text" value={newPatient.species} onChange={e => setNewPatient({ ...newPatient, species: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Dog, Cat" />
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Breed</label>
+                            <input type="text" value={newPatient.breed} onChange={e => setNewPatient({ ...newPatient, breed: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Golden Retriever" />
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Age (Years)</label>
+                            <input type="number" min="0" value={newPatient.age_years} onChange={e => setNewPatient({ ...newPatient, age_years: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="3" />
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Clinical Notes</label>
+                            <textarea rows={2} value={newPatient.health_notes} onChange={e => setNewPatient({ ...newPatient, health_notes: e.target.value })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20" placeholder="Medical history, allergies, etc."></textarea>
+                        </div>
+                        <div className="sm:col-span-2">
+                            <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Attach Report (PDF)</label>
+                            <input type="file" accept=".pdf,application/pdf" onChange={e => setNewPatient({ ...newPatient, report_file: e.target.files?.[0] || null })} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/20 file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-1 file:text-sm file:font-semibold file:text-primary hover:file:bg-primary/20" />
                         </div>
                     </div>
-                    <div className="relative z-10 mt-5 border-t border-slate-100 dark:border-slate-800 pt-4">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Clinical Notes</p>
-                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">Recovering from minor surgery. Checkup due next month.</p>
-                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Owner: John Doe</p>
+                    <div className="mt-4 flex justify-end gap-3">
+                        <button type="button" onClick={() => setShowAddPatient(false)} className="rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:border-slate-400">Cancel</button>
+                        <button type="submit" disabled={isAddingPatient} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:opacity-70">
+                            {isAddingPatient ? 'Adding...' : 'Save Patient'}
+                        </button>
                     </div>
-                </div>
+                </form>
+            )}
 
-                {/* Mock Patient 2 */}
-                <div className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md hover:ring-primary/20">
-                    <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 transition-transform group-hover:scale-150"></div>
-                    <div className="relative z-10 flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-primary">
-                                <PawPrint className="h-6 w-6" />
+            <div className="grid gap-4 sm:grid-cols-2">
+                {patients.length === 0 ? (
+                    <div className="col-span-full rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400">
+                        <PawPrint className="mx-auto mb-2 h-8 w-8 text-slate-400" />
+                        <p>No patients found. Patients will appear here once they book an appointment.</p>
+                    </div>
+                ) : (
+                    patients.map((patient) => (
+                        <div key={patient.id} className="group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md hover:ring-primary/20">
+                            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 transition-transform group-hover:scale-150"></div>
+                            <div className="relative z-10 flex items-start justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-primary">
+                                        <PawPrint className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-display text-lg font-semibold text-dark dark:text-white">{patient.name}</h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{patient.breed || patient.species} {patient.age_years ? `• ${patient.age_years} Years` : ''}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="font-display text-lg font-semibold text-dark dark:text-white">Bella</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Labrador Mix • 2 Years</p>
+                            <div className="relative z-10 mt-5 border-t border-slate-100 dark:border-slate-800 pt-4">
+                                {patient.health_notes && (
+                                    <>
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Clinical Notes</p>
+                                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{patient.health_notes}</p>
+                                    </>
+                                )}
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Owner: {patient.profiles?.name || 'Unknown'}</p>
                             </div>
                         </div>
-                    </div>
-                    <div className="relative z-10 mt-5 border-t border-slate-100 dark:border-slate-800 pt-4">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Clinical Notes</p>
-                        <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">Routine vaccinations completed. Needs dietary advice.</p>
-                        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Owner: Sarah Smith</p>
-                    </div>
-                </div>
+                    ))
+                )}
             </div>
         </section>
     );
@@ -434,40 +517,36 @@ export function VetProfile({ user }: { user: any }) {
         <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-dark dark:text-white">Clinic Partners</h2>
+                <Link href="/vets" className="flex items-center gap-1 text-sm font-semibold text-primary transition hover:text-primary/80">
+                    <Search className="h-4 w-4" />
+                    Find Partners
+                </Link>
             </div>
 
             <div className="grid gap-4">
-                {/* Mock Partner 1 */}
-                <div className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                            <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-dark dark:text-white">Paws & Bubbles Grooming</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Grooming Partner</p>
-                        </div>
+                {partners.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400">
+                        <Heart className="mx-auto mb-2 h-8 w-8 text-slate-400" />
+                        <p>You haven't saved any clinic partners yet.</p>
                     </div>
-                    <button className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
-                        <ChevronRight className="h-5 w-5" />
-                    </button>
-                </div>
-
-                {/* Mock Partner 2 */}
-                <div className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                            <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
+                ) : (
+                    partners.map((partner) => (
+                        <div key={partner.user_id} className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                    <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-dark dark:text-white">{partner.profiles?.name || partner.clinic_name || 'Clinic Partner'}</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">{partner.specialization || 'Veterinarian'} {partner.city ? `• ${partner.city}` : ''}</p>
+                                </div>
+                            </div>
+                            <Link href={`/vets/${partner.user_id}`} className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
+                                <ChevronRight className="h-5 w-5" />
+                            </Link>
                         </div>
-                        <div>
-                            <h3 className="font-semibold text-dark dark:text-white">City Pet Pharmacy</h3>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Pharmacy Partner</p>
-                        </div>
-                    </div>
-                    <button className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
-                        <ChevronRight className="h-5 w-5" />
-                    </button>
-                </div>
+                    ))
+                )}
             </div>
         </section>
     );

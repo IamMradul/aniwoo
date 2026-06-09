@@ -76,7 +76,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json().catch(() => ({}))
+  let body: any = {}
+  let file: File | null = null
+
+  const contentType = request.headers.get('content-type') || ''
+  if (contentType.includes('multipart/form-data')) {
+    const formData = await request.formData().catch(() => null)
+    if (formData) {
+      body.name = formData.get('name')
+      body.species = formData.get('species')
+      body.breed = formData.get('breed')
+      body.age_years = formData.get('age_years')
+      body.health_notes = formData.get('health_notes')
+      file = formData.get('report') as File | null
+    }
+  } else {
+    body = await request.json().catch(() => ({}))
+  }
 
   if (!body.name || !body.species) {
     return NextResponse.json({ error: 'Missing required pet fields' }, { status: 400 })
@@ -93,6 +109,28 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
+  }
+
+  if (file && data) {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${data.id}-${Date.now()}.${fileExt}`
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from('pet-reports')
+      .upload(fileName, file, { contentType: file.type })
+
+    if (!uploadError) {
+      const { data: publicUrlData } = supabaseAdmin.storage
+        .from('pet-reports')
+        .getPublicUrl(fileName)
+
+      await supabaseAdmin.from('health_scans').insert({
+        pet_id: data.id,
+        owner_id: session.id,
+        scan_type: 'Vet Report',
+        result_summary: 'Uploaded during patient registration',
+        report_url: publicUrlData.publicUrl
+      })
+    }
   }
 
   return NextResponse.json({ data })
