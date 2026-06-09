@@ -30,20 +30,25 @@ export async function GET(request: NextRequest) {
 
   const vetIds = savedRows.map((r: { vet_id: string }) => r.vet_id)
 
-  // Fetch vet details from the vets table using the vet's user_id
+  // Fetch vet details from the profiles table using the vet's id
   const { data: vetsData, error: vetsError } = await supabaseAdmin
-    .from('vets')
-    .select('*, profiles:user_id(id, name, email)')
-    .in('user_id', vetIds)
+    .from('profiles')
+    .select('*')
+    .in('id', vetIds)
 
   if (vetsError) {
     return NextResponse.json({ error: vetsError.message }, { status: 400 })
   }
 
-  // Merge saved_at into each vet record
-  const result = (vetsData || []).map((vet: Record<string, unknown>) => {
-    const savedRow = savedRows.find((r: { vet_id: string; saved_at: string }) => r.vet_id === vet.user_id)
-    return { ...vet, saved_at: savedRow?.saved_at ?? null }
+  // Merge saved_at into each vet record and ensure backwards compatibility
+  const result = (vetsData || []).map((profile: Record<string, unknown>) => {
+    const savedRow = savedRows.find((r: { vet_id: string; saved_at: string }) => r.vet_id === profile.id)
+    return { 
+      ...profile, 
+      saved_at: savedRow?.saved_at ?? null,
+      user_id: profile.id,
+      profiles: { name: profile.name, email: profile.email }
+    }
   })
 
   return NextResponse.json({ data: result })

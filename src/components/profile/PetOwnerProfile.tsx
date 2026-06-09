@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Calendar, Clock, MapPin, Search, PawPrint, Heart, FileText, Download, Plus, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, Search, PawPrint, Heart, FileText, Download, Plus, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 type TabType = 'appointments' | 'pets' | 'providers' | 'reports';
@@ -12,31 +12,36 @@ export function PetOwnerProfile({ user }: { user: any }) {
   const [bookings, setBookings] = useState<any[]>([]);
   const [pets, setPets] = useState<any[]>([]);
   const [healthScans, setHealthScans] = useState<any[]>([]);
+  const [savedProviders, setSavedProviders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Add pet form state
   const [showAddPet, setShowAddPet] = useState(false);
   const [isAddingPet, setIsAddingPet] = useState(false);
+  const [editingPetId, setEditingPetId] = useState<string | null>(null);
   const [newPet, setNewPet] = useState({ name: '', species: '', breed: '', age_years: '', health_notes: '' });
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [bookingsApiRes, petsRes, scansRes] = await Promise.all([
+        const [bookingsApiRes, petsRes, scansRes, providersRes] = await Promise.all([
           fetch('/api/bookings?role=pet_owner', {
             method: 'GET',
             credentials: 'include'
           }),
-          supabase
-            .from('pets')
-            .select('*')
-            .eq('owner_id', user.id)
-            .order('created_at', { ascending: false }),
+          fetch('/api/pets', {
+            method: 'GET',
+            credentials: 'include'
+          }),
           supabase
             .from('health_scans')
             .select('*, pets(name)')
             .eq('owner_id', user.id)
-            .order('created_at', { ascending: false })
+            .order('created_at', { ascending: false }),
+          fetch('/api/saved-vets', {
+            method: 'GET',
+            credentials: 'include'
+          })
         ]);
 
         if (!bookingsApiRes.ok) {
@@ -47,11 +52,22 @@ export function PetOwnerProfile({ user }: { user: any }) {
           setBookings(payload?.data || []);
         }
 
-        if (petsRes.error) console.error('Pets err:', petsRes.error);
-        else setPets(petsRes.data || []);
+        if (!petsRes.ok) {
+          console.error('Pets err:', await petsRes.text().catch(() => ''));
+        } else {
+          const payload = await petsRes.json().catch(() => ({ data: [] }));
+          setPets(payload?.data || []);
+        }
 
         if (scansRes.error) console.error('Scans err:', scansRes.error);
         else setHealthScans(scansRes.data || []);
+
+        if (!providersRes.ok) {
+          console.error('Providers err:', await providersRes.text().catch(() => ''));
+        } else {
+          const payload = await providersRes.json().catch(() => ({ data: [] }));
+          setSavedProviders(payload?.data || []);
+        }
       } catch (err) {
         console.error('Error loading data:', err);
       } finally {
@@ -65,10 +81,12 @@ export function PetOwnerProfile({ user }: { user: any }) {
     e.preventDefault();
     setIsAddingPet(true);
     try {
+      const isEditing = !!editingPetId;
       const res = await fetch('/api/pets', {
-        method: 'POST',
+        method: isEditing ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: isEditing ? editingPetId : undefined,
           name: newPet.name,
           species: newPet.species,
           breed: newPet.breed,
@@ -78,16 +96,46 @@ export function PetOwnerProfile({ user }: { user: any }) {
       });
 
       const payload = await res.json();
-      if (!res.ok) throw new Error(payload.error || 'Failed to add pet');
+      if (!res.ok) throw new Error(payload.error || `Failed to ${isEditing ? 'update' : 'add'} pet`);
 
-      setPets([payload.data, ...pets]);
+      if (isEditing) {
+        setPets(pets.map(p => p.id === payload.data.id ? payload.data : p));
+      } else {
+        setPets([payload.data, ...pets]);
+      }
       setShowAddPet(false);
+      setEditingPetId(null);
       setNewPet({ name: '', species: '', breed: '', age_years: '', health_notes: '' });
     } catch (err: any) {
-      console.error('Error adding pet:', err);
-      alert('Failed to add pet: ' + (err.message || 'Unknown error'));
+      console.error('Error saving pet:', err);
+      alert(`Failed to ${editingPetId ? 'update' : 'add'} pet: ` + (err.message || 'Unknown error'));
     } finally {
       setIsAddingPet(false);
+    }
+  };
+
+  const handleEditClick = (pet: any) => {
+    setEditingPetId(pet.id);
+    setNewPet({
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed || '',
+      age_years: pet.age_years ? pet.age_years.toString() : '',
+      health_notes: pet.health_notes || ''
+    });
+    setShowAddPet(true);
+  };
+
+  const handleDeletePet = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this pet?')) return;
+    try {
+      const res = await fetch(`/api/pets?id=${id}`, { method: 'DELETE' });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Failed to delete pet');
+      setPets(pets.filter(p => p.id !== id));
+    } catch (err: any) {
+      console.error('Error deleting pet:', err);
+      alert('Failed to delete pet: ' + (err.message || 'Unknown error'));
     }
   };
 
@@ -160,7 +208,7 @@ export function PetOwnerProfile({ user }: { user: any }) {
 
       {showAddPet && (
         <form onSubmit={handleAddPet} className="mb-6 rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
-          <h3 className="mb-4 text-lg font-semibold text-dark dark:text-white">Add a New Pet</h3>
+          <h3 className="mb-4 text-lg font-semibold text-dark dark:text-white">{editingPetId ? 'Edit Pet' : 'Add a New Pet'}</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">Name *</label>
@@ -184,9 +232,9 @@ export function PetOwnerProfile({ user }: { user: any }) {
             </div>
           </div>
           <div className="mt-4 flex justify-end gap-3">
-            <button type="button" onClick={() => setShowAddPet(false)} className="rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:border-slate-400">Cancel</button>
+            <button type="button" onClick={() => { setShowAddPet(false); setEditingPetId(null); setNewPet({ name: '', species: '', breed: '', age_years: '', health_notes: '' }); }} className="rounded-full border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:border-slate-400">Cancel</button>
             <button type="submit" disabled={isAddingPet} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:opacity-70">
-              {isAddingPet ? 'Adding...' : 'Save Pet'}
+              {isAddingPet ? 'Saving...' : editingPetId ? 'Update Pet' : 'Save Pet'}
             </button>
           </div>
         </form>
@@ -214,6 +262,14 @@ export function PetOwnerProfile({ user }: { user: any }) {
                       <h3 className="font-display text-lg font-semibold text-dark dark:text-white">{pet.name}</h3>
                       <p className="text-sm text-slate-500 dark:text-slate-400">{pet.breed || pet.species} {pet.age_years ? `• ${pet.age_years} Years` : ''}</p>
                     </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleEditClick(pet)} className="rounded-full bg-slate-50 dark:bg-slate-800 p-2 text-slate-400 transition hover:bg-primary/10 hover:text-primary" title="Edit">
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => handleDeletePet(pet.id)} className="rounded-full bg-slate-50 dark:bg-slate-800 p-2 text-slate-400 transition hover:bg-rose-500/10 hover:text-rose-500" title="Delete">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
                 {pet.health_notes && (
@@ -245,39 +301,34 @@ export function PetOwnerProfile({ user }: { user: any }) {
         <h2 className="text-xl font-semibold text-dark dark:text-white">Saved Providers</h2>
       </div>
 
-      <div className="grid gap-4">
-        {/* Mock Provider 1 */}
-        <div className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-              <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-dark dark:text-white">Dr. Sarah Jenkins</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Veterinarian • City Vet Clinic</p>
-            </div>
-          </div>
-          <Link href="/vets" className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
-            <ChevronRight className="h-5 w-5" />
-          </Link>
+      {loading ? (
+        <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+      ) : savedProviders.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-8 text-center text-slate-500 dark:text-slate-400">
+          <Heart className="mx-auto mb-2 h-8 w-8 text-slate-400" />
+          <p>You haven't saved any providers yet.</p>
+          <Link href="/vets" className="mt-4 inline-block rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">Find Providers</Link>
         </div>
-
-        {/* Mock Provider 2 */}
-        <div className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-              <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
+      ) : (
+        <div className="grid gap-4">
+          {savedProviders.map((provider) => (
+            <div key={provider.user_id} className="flex items-center justify-between rounded-2xl bg-white dark:bg-slate-900 p-4 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 transition-all hover:shadow-md">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  <Heart className="h-6 w-6 fill-rose-500 text-rose-500" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-dark dark:text-white">{provider.profiles?.name || provider.clinic_name || 'Provider'}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Veterinarian {provider.clinic_city ? `• ${provider.clinic_city}` : ''}</p>
+                </div>
+              </div>
+              <Link href={`/vets/${provider.user_id}`} className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
+                <ChevronRight className="h-5 w-5" />
+              </Link>
             </div>
-            <div>
-              <h3 className="font-semibold text-dark dark:text-white">Paws & Bubbles Grooming</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Groomer • Downtown</p>
-            </div>
-          </div>
-          <button className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-slate-400 transition-colors hover:bg-primary/10 hover:text-primary">
-            <ChevronRight className="h-5 w-5" />
-          </button>
+          ))}
         </div>
-      </div>
+      )}
     </section>
   );
 

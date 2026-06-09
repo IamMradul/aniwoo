@@ -97,3 +97,92 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ data })
 }
+
+export async function GET(request: NextRequest) {
+  if (!supabaseAdmin || !SESSION_SECRET) {
+    return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 })
+  }
+
+  const session = readSessionFromCookie(request)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('pets')
+    .select('*')
+    .eq('owner_id', session.id)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
+  }
+
+  return NextResponse.json({ data })
+}
+
+export async function PATCH(request: NextRequest) {
+  if (!supabaseAdmin || !SESSION_SECRET) {
+    return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 })
+  }
+
+  const session = readSessionFromCookie(request)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const body = await request.json().catch(() => ({}))
+  
+  if (!body.id) {
+    return NextResponse.json({ error: 'Missing pet ID' }, { status: 400 })
+  }
+
+  const updateData: any = {}
+  if (body.name !== undefined) updateData.name = body.name
+  if (body.species !== undefined) updateData.species = body.species
+  if (body.breed !== undefined) updateData.breed = body.breed || null
+  if (body.age_years !== undefined) updateData.age_years = body.age_years || null
+  if (body.health_notes !== undefined) updateData.health_notes = body.health_notes || null
+
+  const { data, error } = await supabaseAdmin
+    .from('pets')
+    .update(updateData)
+    .eq('id', body.id)
+    .eq('owner_id', session.id)
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
+  }
+
+  return NextResponse.json({ data })
+}
+
+export async function DELETE(request: NextRequest) {
+  if (!supabaseAdmin || !SESSION_SECRET) {
+    return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 })
+  }
+
+  const session = readSessionFromCookie(request)
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const id = request.nextUrl.searchParams.get('id')
+  if (!id) {
+    return NextResponse.json({ error: 'Missing pet ID' }, { status: 400 })
+  }
+
+  const { error } = await supabaseAdmin
+    .from('pets')
+    .delete()
+    .eq('id', id)
+    .eq('owner_id', session.id)
+
+  if (error) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: 400 })
+  }
+
+  return NextResponse.json({ success: true })
+}
