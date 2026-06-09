@@ -65,18 +65,22 @@ export function PetOwnerProfile({ user }: { user: any }) {
     e.preventDefault();
     setIsAddingPet(true);
     try {
-      const { data, error } = await supabase.from('pets').insert({
-        owner_id: user.id,
-        name: newPet.name,
-        species: newPet.species,
-        breed: newPet.breed,
-        age_years: newPet.age_years ? parseInt(newPet.age_years) : null,
-        health_notes: newPet.health_notes || null
-      }).select().single();
+      const res = await fetch('/api/pets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newPet.name,
+          species: newPet.species,
+          breed: newPet.breed,
+          age_years: newPet.age_years ? parseInt(newPet.age_years) : null,
+          health_notes: newPet.health_notes || null
+        })
+      });
 
-      if (error) throw error;
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Failed to add pet');
 
-      setPets([data, ...pets]);
+      setPets([payload.data, ...pets]);
       setShowAddPet(false);
       setNewPet({ name: '', species: '', breed: '', age_years: '', health_notes: '' });
     } catch (err: any) {
