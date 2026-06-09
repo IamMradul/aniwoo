@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Stethoscope, MapPin, Phone, Award, Building2, IndianRupee, Heart, ArrowLeft, Clock, Info } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Stethoscope, MapPin, Phone, Award, Building2, IndianRupee, Heart, ArrowLeft, Clock, Info, ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
 import { useAuth } from '@/components/providers/AuthProvider';
 
 const BookingModal = dynamic(() => import('@/components/vets/BookingModal'), { ssr: false });
@@ -42,6 +42,9 @@ export default function VetProfilePage({ params }: { params: { id: string } }) {
   
   const [savedVetIds, setSavedVetIds] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  
+  // Image Carousel State
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchVet = async () => {
@@ -117,22 +120,28 @@ export default function VetProfilePage({ params }: { params: { id: string } }) {
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent shadow-lg shadow-primary/20"></div>
       </div>
     );
   }
 
   if (error || !vet) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8 text-center">
-        <div className="rounded-3xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-6 py-12">
-          <Stethoscope className="mx-auto h-12 w-12 text-red-400 mb-4" />
-          <h1 className="text-xl font-semibold text-red-700 dark:text-red-400">Vet not found</h1>
-          <p className="mt-2 text-sm text-red-600 dark:text-red-300">{error || 'The veterinarian you are looking for does not exist or has been removed.'}</p>
-          <button onClick={() => router.push('/vets')} className="mt-6 inline-flex items-center gap-2 rounded-full bg-red-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700">
-            <ArrowLeft className="h-4 w-4" /> Back to Directory
+      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8 text-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-900/20 dark:to-red-900/10 p-12 ring-1 ring-red-200 dark:ring-red-800/30"
+        >
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 mb-6">
+            <Stethoscope className="h-10 w-10 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-display font-bold text-red-800 dark:text-red-400">Vet Profile Unavailable</h1>
+          <p className="mt-3 text-red-600 dark:text-red-300 max-w-md mx-auto">{error || 'The veterinarian you are looking for does not exist or has been removed.'}</p>
+          <button onClick={() => router.push('/vets')} className="mt-8 inline-flex items-center gap-2 rounded-full bg-red-600 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-700 hover:-translate-y-0.5">
+            <ArrowLeft className="h-4 w-4" /> Return to Directory
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -142,140 +151,218 @@ export default function VetProfilePage({ params }: { params: { id: string } }) {
     ? vet.clinic_image_urls 
     : vet.clinic_image_url ? [vet.clinic_image_url] : [];
 
-  return (
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <button 
-        onClick={() => router.back()} 
-        className="mb-6 flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-primary transition"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back
-      </button>
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
 
-      <div className="grid gap-8 lg:grid-cols-3">
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  return (
+    <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 lg:px-8 font-sans">
+      <motion.button 
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        onClick={() => router.back()} 
+        className="group mb-8 inline-flex items-center gap-2 rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-md px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 ring-1 ring-slate-200 dark:ring-slate-800 transition hover:bg-white hover:text-primary dark:hover:bg-slate-800 shadow-sm"
+      >
+        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" /> Directory
+      </motion.button>
+
+      <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
         {/* Left Column - Main Details */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-7 xl:col-span-8 space-y-8">
           
-          {/* Header Card */}
+          {/* Cover & Gallery Section */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="overflow-hidden rounded-3xl bg-white/90 dark:bg-slate-900/90 shadow-md ring-1 ring-slate-100 dark:ring-slate-800"
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="group relative overflow-hidden rounded-[2.5rem] bg-slate-100 dark:bg-slate-800 shadow-xl ring-1 ring-slate-200/50 dark:ring-slate-700/50"
           >
-            {/* Gallery / Cover Image */}
-            <div className="relative h-64 sm:h-80 w-full bg-slate-100 dark:bg-slate-800">
+            <div className="relative h-[300px] w-full sm:h-[400px] lg:h-[480px]">
               {images.length > 0 ? (
-                <Image
-                  src={images[0]}
-                  alt={vet.clinic_name}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  className="object-cover"
-                  priority
-                />
+                <AnimatePresence initial={false}>
+                  <motion.div
+                    key={currentImageIndex}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0"
+                  >
+                    <Image
+                      src={images[currentImageIndex]}
+                      alt={`${vet.clinic_name} - View ${currentImageIndex + 1}`}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 66vw"
+                      className="object-cover"
+                      priority={currentImageIndex === 0}
+                    />
+                  </motion.div>
+                </AnimatePresence>
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-indigo-50 dark:from-slate-800 to-white dark:to-slate-900 text-slate-300 dark:text-slate-600">
-                  <Building2 className="h-20 w-20 opacity-50" />
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+                  <Building2 className="h-24 w-24 text-slate-300 dark:text-slate-700" />
                 </div>
               )}
 
-              <button
-                onClick={handleToggleSave}
-                disabled={saving}
-                className={`absolute top-4 right-4 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition disabled:opacity-50 ${isSaved ? 'bg-red-500 text-white' : 'bg-white/80 dark:bg-slate-900/80 text-slate-500 hover:text-red-500'}`}
-              >
-                <Heart className={`h-5 w-5 ${isSaved ? 'fill-current' : ''}`} />
-              </button>
-            </div>
+              {/* Gradient Overlay for bottom shadow */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 pointer-events-none" />
 
-            <div className="p-6 sm:p-8">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                <div>
-                  <h1 className="font-display text-2xl sm:text-3xl font-bold text-dark dark:text-white">
+              {/* Image Navigation Controls */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/30 p-2.5 text-white backdrop-blur-md transition hover:bg-white hover:text-dark opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    aria-label="Previous Image"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/30 p-2.5 text-white backdrop-blur-md transition hover:bg-white hover:text-dark opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    aria-label="Next Image"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </button>
+                  
+                  {/* Dots Indicator */}
+                  <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
+                    {images.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                        className={`h-2 rounded-full transition-all duration-300 ${idx === currentImageIndex ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'}`}
+                        aria-label={`Go to image ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Actions & Badges */}
+              <div className="absolute top-6 right-6 flex items-center gap-3">
+                <button
+                  onClick={handleToggleSave}
+                  disabled={saving}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full backdrop-blur-xl transition-all duration-300 disabled:opacity-50 hover:scale-110 shadow-lg ${isSaved ? 'bg-red-500 text-white shadow-red-500/30' : 'bg-white/80 dark:bg-slate-900/80 text-slate-500 hover:text-red-500'}`}
+                >
+                  <Heart className={`h-6 w-6 ${isSaved ? 'fill-current scale-110' : ''} transition-transform`} />
+                </button>
+              </div>
+
+              {/* Floating Bottom Left Info inside image container for premium look */}
+              <div className="absolute bottom-6 left-6 right-6 flex flex-wrap items-end justify-between gap-4 pointer-events-none">
+                <div className="pointer-events-auto">
+                  <div className="inline-flex items-center gap-2 rounded-2xl bg-white/20 backdrop-blur-md px-4 py-2 text-white border border-white/20 shadow-lg mb-3">
+                    <Stethoscope className="h-4 w-4" />
+                    <span className="text-sm font-semibold tracking-wide uppercase">Veterinary Clinic</span>
+                  </div>
+                  <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white drop-shadow-md">
                     {vet.clinic_name}
                   </h1>
-                  {vet.profiles && (
-                    <p className="mt-1 text-lg text-slate-600 dark:text-slate-300 font-medium">
-                      Dr. {vet.profiles.name}
-                    </p>
-                  )}
                 </div>
-                
-                {vet.consultation_fee && (
-                  <div className="flex flex-col items-start sm:items-end">
-                    <span className="text-xs uppercase tracking-wide font-semibold text-slate-500 dark:text-slate-400">Consultation Fee</span>
-                    <span className="flex items-center text-xl font-bold text-green-600 dark:text-green-400">
-                      <IndianRupee className="h-5 w-5 mr-0.5" />{vet.consultation_fee}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1 text-sm font-medium text-indigo-700 dark:text-indigo-300">
-                  <Award className="h-4 w-4" /> {vet.specialization}
-                </span>
-                {vet.experience_years > 0 && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 px-3 py-1 text-sm font-medium text-blue-700 dark:text-blue-300">
-                    <Clock className="h-4 w-4" /> {vet.experience_years}+ Years Experience
-                  </span>
-                )}
               </div>
             </div>
+          </motion.div>
+
+          {/* Quick Stats Banner */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+          >
+            {[
+              { icon: Award, label: "Specialty", value: vet.specialization.split(',')[0] || "General" },
+              { icon: Clock, label: "Experience", value: vet.experience_years > 0 ? `${vet.experience_years}+ Years` : "Certified" },
+              { icon: GraduationCap, label: "Degree", value: vet.qualifications.split(',')[0] || "DVM" },
+              { icon: IndianRupee, label: "Consultation", value: vet.consultation_fee ? `₹${vet.consultation_fee}` : "Varies" },
+            ].map((stat, idx) => (
+              <div key={idx} className="flex flex-col items-center justify-center p-6 rounded-[2rem] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm ring-1 ring-slate-100 dark:ring-slate-800 text-center transition hover:-translate-y-1 hover:shadow-md">
+                <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center mb-3">
+                  <stat.icon className="h-5 w-5 text-primary" />
+                </div>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{stat.label}</p>
+                <p className="mt-1 font-semibold text-dark dark:text-white line-clamp-1">{stat.value}</p>
+              </div>
+            ))}
           </motion.div>
 
           {/* About Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 sm:p-8 shadow-md ring-1 ring-slate-100 dark:ring-slate-800"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="rounded-[2.5rem] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-8 sm:p-10 shadow-sm ring-1 ring-slate-100 dark:ring-slate-800 relative overflow-hidden"
           >
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-dark dark:text-white">
-              <Info className="h-5 w-5 text-primary" /> About
-            </h2>
-            <div className="space-y-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-              {vet.bio ? (
-                <p className="whitespace-pre-wrap">{vet.bio}</p>
-              ) : (
-                <p className="italic text-slate-400">No biography provided.</p>
+            {/* Decorative background blob */}
+            <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
+            
+            <div className="relative z-10">
+              <h2 className="mb-6 flex items-center gap-3 text-2xl font-display font-bold text-dark dark:text-white">
+                <Info className="h-6 w-6 text-primary" /> About the Doctor
+              </h2>
+              
+              {vet.profiles && (
+                <div className="mb-8 flex items-center gap-4 border-l-4 border-primary pl-4">
+                  <div>
+                    <p className="text-xl font-bold text-dark dark:text-white">Dr. {vet.profiles.name}</p>
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">{vet.qualifications}</p>
+                  </div>
+                </div>
               )}
-            </div>
 
-            <h3 className="mt-8 mb-3 font-semibold text-dark dark:text-white">Qualifications</h3>
-            <p className="text-slate-600 dark:text-slate-300">{vet.qualifications}</p>
+              <div className="prose prose-slate dark:prose-invert max-w-none text-slate-600 dark:text-slate-300">
+                {vet.bio ? (
+                  <p className="whitespace-pre-wrap leading-relaxed text-base sm:text-lg">{vet.bio}</p>
+                ) : (
+                  <p className="italic text-slate-400">Detailed biography is not available at the moment.</p>
+                )}
+              </div>
+            </div>
           </motion.div>
 
         </div>
 
-        {/* Right Column - Sticky Sidebar */}
-        <div className="lg:col-span-1">
+        {/* Right Column - Sticky Booking Sidebar */}
+        <div className="lg:col-span-5 xl:col-span-4 relative">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="sticky top-24 rounded-3xl bg-white/90 dark:bg-slate-900/90 p-6 shadow-md ring-1 ring-slate-100 dark:ring-slate-800"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="sticky top-24 rounded-[2.5rem] bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-900/95 p-8 shadow-xl ring-1 ring-slate-200 dark:ring-slate-800"
           >
-            <h2 className="mb-6 text-lg font-bold text-dark dark:text-white">Clinic Details</h2>
+            <div className="mb-8">
+              <span className="inline-block rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs font-bold uppercase tracking-widest text-green-700 dark:text-green-400 mb-4">
+                Available for Booking
+              </span>
+              <h2 className="text-2xl font-display font-bold text-dark dark:text-white">Visit Clinic</h2>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Schedule a visit or get in touch.</p>
+            </div>
             
-            <div className="space-y-6 mb-8">
-              <div className="flex gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+            <div className="space-y-6 mb-10">
+              <div className="group flex gap-4 p-4 rounded-2xl transition hover:bg-slate-100 dark:hover:bg-slate-800/50">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
                   <MapPin className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-dark dark:text-white">Address</p>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{vet.location}</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">{vet.city}, {vet.state}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Location</p>
+                  <p className="text-sm font-medium text-dark dark:text-white">{vet.location}</p>
+                  <p className="text-sm text-slate-500">{vet.city}, {vet.state}</p>
                 </div>
               </div>
 
-              <div className="flex gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+              <div className="group flex gap-4 p-4 rounded-2xl transition hover:bg-slate-100 dark:hover:bg-slate-800/50">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
                   <Phone className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-dark dark:text-white">Phone</p>
-                  <a href={`tel:${vet.phone}`} className="mt-1 block text-sm text-primary hover:underline font-medium">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Contact</p>
+                  <a href={`tel:${vet.phone}`} className="inline-block text-base font-bold text-dark dark:text-white transition hover:text-primary">
                     {vet.phone}
                   </a>
                 </div>
@@ -290,10 +377,17 @@ export default function VetProfilePage({ params }: { params: { id: string } }) {
                   setIsBookingModalOpen(true);
                 }
               }}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-4 text-base font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 hover:scale-[1.02] active:scale-95"
+              className="group relative w-full overflow-hidden rounded-2xl bg-primary px-8 py-5 text-lg font-bold text-white shadow-[0_8px_30px_rgb(var(--primary-rgb),0.3)] transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgb(var(--primary-rgb),0.4)] active:translate-y-0"
             >
-              Book Appointment
+              <div className="relative z-10 flex items-center justify-center gap-2">
+                Book Appointment
+                <ArrowLeft className="h-5 w-5 rotate-180 transition-transform group-hover:translate-x-1" />
+              </div>
+              <div className="absolute inset-0 z-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] transition-transform duration-1000 group-hover:translate-x-[100%]" />
             </button>
+            <p className="mt-4 text-center text-xs font-medium text-slate-400">
+              No hidden charges. Instant confirmation.
+            </p>
           </motion.div>
         </div>
       </div>

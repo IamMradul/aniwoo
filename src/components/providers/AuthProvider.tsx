@@ -135,7 +135,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               role: baseRole
             })
           })
-            .then(async () => {
+            .then(async (sessionRes) => {
+              if (!sessionRes.ok) {
+                console.warn('Backend rejected Google session. Clearing stale local session.');
+                localStorage.removeItem('googleUserSession');
+                if (mounted) {
+                  setUser(null);
+                }
+                return;
+              }
+
               const response = await fetch('/api/profile', {
                 method: 'GET',
                 credentials: 'include'

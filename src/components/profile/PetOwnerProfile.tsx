@@ -129,6 +129,12 @@ export function PetOwnerProfile({ user }: { user: any }) {
                 <div className="flex items-center gap-1.5"><Clock className="h-4 w-4" /> {new Date(booking.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
               </div>
               {booking.reason && <p className="mt-3 text-sm text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-slate-800 pt-3 flex items-center gap-2"><MapPin className="h-4 w-4" />{booking.reason}</p>}
+              {booking.status === 'rescheduled' && booking.vet_note && (
+                <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 p-3 text-sm text-amber-800 dark:text-amber-200">
+                  <p className="font-semibold mb-1 flex items-center gap-1.5"><Clock className="h-4 w-4" /> New time proposed by Vet</p>
+                  <p className="italic">"{booking.vet_note}"</p>
+                </div>
+              )}
             </div>
           ))}
         </div>

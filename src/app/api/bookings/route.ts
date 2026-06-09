@@ -128,6 +128,7 @@ export async function GET(request: NextRequest) {
         appointment_date,
         reason,
         status,
+        vet_note,
         pet_owner_id
       `)
       .eq('vet_id', session.id)
@@ -168,6 +169,7 @@ export async function GET(request: NextRequest) {
       appointment_date,
       reason,
       status,
+      vet_note,
       vet_id
     `)
     .eq('pet_owner_id', session.id)
@@ -216,14 +218,20 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
   const bookingId = body?.id as string | undefined
   const status = body?.status as string | undefined
+  const newAppointmentDate = body?.appointment_date as string | undefined
+  const vetNote = body?.vet_note as string | undefined
 
   if (!bookingId || !status) {
     return NextResponse.json({ error: 'Missing booking update fields' }, { status: 400 })
   }
 
+  const updatePayload: any = { status }
+  if (newAppointmentDate) updatePayload.appointment_date = newAppointmentDate
+  if (vetNote !== undefined) updatePayload.vet_note = vetNote
+
   const { error } = await supabaseAdmin
     .from('bookings')
-    .update({ status })
+    .update(updatePayload)
     .eq('id', bookingId)
     .eq('vet_id', session.id)
 

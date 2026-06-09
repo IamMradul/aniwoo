@@ -31,6 +31,7 @@ export function VetProfile({ user }: { user: any }) {
     const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [notification, setNotification] = useState<string | null>(null);
+    const [rescheduleData, setRescheduleData] = useState<{ id: string | null, date: string, time: string, note: string }>({ id: null, date: '', time: '', note: '' });
 
     const [saving, setSaving] = useState(false);
     const [uploadingClinicImages, setUploadingClinicImages] = useState(false);
@@ -262,7 +263,7 @@ export function VetProfile({ user }: { user: any }) {
         };
     }, [user.id]);
 
-    const updateBookingStatus = async (id: string, status: string) => {
+    const updateBookingStatus = async (id: string, status: string, newDate?: string, note?: string) => {
         try {
             const response = await fetch('/api/bookings', {
                 method: 'PATCH',
@@ -270,7 +271,7 @@ export function VetProfile({ user }: { user: any }) {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({ id, status })
+                body: JSON.stringify({ id, status, appointment_date: newDate, vet_note: note })
             });
 
             if (!response.ok) {
@@ -330,10 +331,40 @@ export function VetProfile({ user }: { user: any }) {
                                 </div>
                             )}
 
-                            {booking.status === 'pending' && (
+                            {booking.status === 'pending' && rescheduleData.id !== booking.id && (
                                 <div className="mt-4 flex gap-2">
                                     <button onClick={() => updateBookingStatus(booking.id, 'confirmed')} className="flex-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-primary/90">Confirm</button>
-                                    <button onClick={() => updateBookingStatus(booking.id, 'rescheduled')} className="flex-1 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:bg-slate-800">Reschedule</button>
+                                    <button onClick={() => setRescheduleData({ id: booking.id, date: booking.appointment_date.split('T')[0], time: '', note: '' })} className="flex-1 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:bg-slate-800">Reschedule</button>
+                                </div>
+                            )}
+
+                            {rescheduleData.id === booking.id && (
+                                <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4 animate-in fade-in zoom-in-95 duration-200">
+                                    <h4 className="mb-3 text-sm font-semibold text-dark dark:text-white">Propose New Time</h4>
+                                    <div className="space-y-3">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-xs font-medium text-slate-500">Date *</label>
+                                                <input type="date" value={rescheduleData.date} onChange={(e) => setRescheduleData(prev => ({ ...prev, date: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-sm outline-none focus:border-primary" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-medium text-slate-500">Time *</label>
+                                                <input type="time" value={rescheduleData.time} onChange={(e) => setRescheduleData(prev => ({ ...prev, time: e.target.value }))} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-sm outline-none focus:border-primary" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-medium text-slate-500">Note for Owner</label>
+                                            <textarea rows={2} value={rescheduleData.note} onChange={(e) => setRescheduleData(prev => ({ ...prev, note: e.target.value }))} placeholder="E.g., I'm in surgery at 2 PM..." className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-sm outline-none focus:border-primary"></textarea>
+                                        </div>
+                                        <div className="flex gap-2 pt-2">
+                                            <button onClick={() => setRescheduleData({ id: null, date: '', time: '', note: '' })} className="flex-1 rounded-full border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">Cancel</button>
+                                            <button onClick={() => {
+                                                if (!rescheduleData.date || !rescheduleData.time) return alert('Date and Time are required');
+                                                updateBookingStatus(booking.id, 'rescheduled', `${rescheduleData.date}T${rescheduleData.time}:00`, rescheduleData.note);
+                                                setRescheduleData({ id: null, date: '', time: '', note: '' });
+                                            }} className="flex-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-primary/90">Send Proposal</button>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>

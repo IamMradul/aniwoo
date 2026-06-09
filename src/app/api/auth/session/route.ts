@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
     .maybeSingle()
 
   if (profileError) {
-    return NextResponse.json({ error: profileError.message || 'Profile lookup failed' }, { status: 401 })
+    console.error('[Session Route] Profile lookup error:', profileError)
+    return NextResponse.json({ error: `Profile lookup failed: ${profileError.message}` }, { status: 401 })
   }
 
   let resolvedProfile = profile
@@ -78,14 +79,16 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (createProfileError || !createdProfile) {
-      return NextResponse.json({ error: createProfileError?.message || 'Profile not found' }, { status: 401 })
+      console.error('[Session Route] Profile upsert error:', createProfileError)
+      return NextResponse.json({ error: `Profile creation failed: ${createProfileError?.message || 'Unknown error'}` }, { status: 401 })
     }
 
     resolvedProfile = createdProfile
   }
 
   if ((resolvedProfile.email || '').toLowerCase() !== email.toLowerCase()) {
-    return NextResponse.json({ error: 'Profile identity mismatch' }, { status: 401 })
+    console.error(`[Session Route] Identity mismatch. DB email: ${resolvedProfile.email}, Payload email: ${email}`)
+    return NextResponse.json({ error: `Profile identity mismatch. DB: ${resolvedProfile.email}, Payload: ${email}` }, { status: 401 })
   }
 
   const role = resolvedProfile.role === 'vet' || resolvedProfile.role === 'pet_owner' || resolvedProfile.role === 'admin'
