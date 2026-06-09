@@ -89,7 +89,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ error: 'Vet not found' }, { status: 404 });
   }
 
-  let profileData = null;
+  let profileName = '';
+  let profileEmail = '';
+  let hasProfile = false;
+
   if (supabaseAdmin) {
     const vetUserId = (data as { user_id: string }).user_id;
     const { data: profile } = await supabaseAdmin
@@ -97,8 +100,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       .select('id, name, email')
       .eq('id', vetUserId)
       .single();
+      
     if (profile) {
-      profileData = profile;
+      const p = profile as { name: string, email: string };
+      profileName = p.name;
+      profileEmail = p.email;
+      hasProfile = true;
     }
   }
 
@@ -106,7 +113,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
   const responseData = {
     ...vetRecord,
-    profiles: profileData ? { name: profileData.name, email: profileData.email } : undefined
+    profiles: hasProfile ? { name: profileName, email: profileEmail } : undefined
   };
 
   return NextResponse.json({ data: responseData });

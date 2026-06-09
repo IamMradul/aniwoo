@@ -291,56 +291,23 @@ export default function Vets() {
         </div>
 
         <div className="p-6 flex-1 flex flex-col">
-          <div className="mb-4 flex items-start justify-between">
-            <div className="flex-1">
-              <Link href={`/vets/${vet.id}`} className="font-semibold text-lg text-dark dark:text-white line-clamp-1 hover:text-primary hover:underline">
+          <div className="mb-2 flex items-start justify-between">
+            <div className="flex-1 pr-2">
+              <Link href={`/vets/${vet.id}`} className="font-semibold text-base text-dark dark:text-white line-clamp-1 hover:text-primary hover:underline">
                 {vet.clinic_name}
               </Link>
               {vet.profiles && (
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">Dr. {vet.profiles.name}</p>
+                <p className="mt-0.5 text-sm font-medium text-slate-600 dark:text-slate-300">Dr. {vet.profiles.name}</p>
               )}
-            </div>
-            <Stethoscope className="h-6 w-6 text-primary shrink-0 ml-2" />
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-start gap-2">
-              <Award className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-              <div>
-                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{vet.specialization}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{vet.qualifications}</p>
+              <div className="mt-2 flex items-center text-xs text-slate-500 dark:text-slate-400">
+                <MapPin className="mr-1 h-3.5 w-3.5" />
+                {vet.city}
               </div>
             </div>
-
-            <div className="flex items-start gap-2">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-              <div>
-                <p className="text-sm text-slate-700 dark:text-slate-200">{vet.location}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{vet.city}, {vet.state}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-slate-400" />
-              <a href={`tel:${vet.phone}`} className="text-sm text-primary hover:underline">{vet.phone}</a>
-            </div>
-
-            {vet.experience_years > 0 && (
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {vet.experience_years} {vet.experience_years === 1 ? 'year' : 'years'} of experience
-              </p>
-            )}
-
-            {vet.bio && <p className="line-clamp-2 text-xs text-slate-600 dark:text-slate-300">{vet.bio}</p>}
+            <Stethoscope className="h-6 w-6 text-primary shrink-0 ml-2 opacity-80" />
           </div>
 
-          <div className="mt-auto pt-4 flex gap-3">
-            <Link
-              href={`/vets/${vet.id}`}
-              className="flex-1 text-center rounded-full border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary hover:text-white"
-            >
-              View Profile
-            </Link>
+          <div className="mt-auto pt-3 flex flex-col gap-2">
             <button
               onClick={() => {
                 if (!isAuthenticated) {
@@ -349,10 +316,16 @@ export default function Vets() {
                   setBookingVet(vet);
                 }
               }}
-              className="flex-1 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
+              className="w-full rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90"
             >
               Book Now
             </button>
+            <Link
+              href={`/vets/${vet.id}`}
+              className="w-full text-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
+            >
+              View Profile
+            </Link>
           </div>
         </div>
       </motion.div>
